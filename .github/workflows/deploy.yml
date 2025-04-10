@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main, dev ] 
   pull_request:
-    branches: [ main, dev ]  
+    branches: [ main, dev ] 
 
 permissions:
   contents: read
@@ -38,7 +38,22 @@ jobs:
               git clone -b ${{ github.ref_name }} https://github.com/${{ github.repository }}.git frontend
               cd frontend
             fi
+
+            # Install Docker if not already installed
+            if ! [ -x "$(command -v docker)" ]; then
+              echo 'Installing Docker...'
+              sudo apt-get update
+              sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
             
+              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+            
+              echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+            
+              sudo apt-get update
+              sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+            fi
+            
+            # Create/update .env file with environment variables
             cat > .env << EOL
             NEXT_PUBLIC_AUTH_BASE_URL=${{ secrets.NEXT_PUBLIC_AUTH_BASE_URL }}
             NEXT_PUBLIC_CHAT_BASE_URL=${{ secrets.NEXT_PUBLIC_CHAT_BASE_URL }}
@@ -47,41 +62,46 @@ jobs:
             NEXT_PUBLIC_RATING_BASE_URL=${{ secrets.NEXT_PUBLIC_RATING_BASE_URL }}
             EOL
             
-            if ! [ -x "$(command -v docker)" ]; then
-              echo 'Installing Docker...'
+            # Check if docker compose is available (either as plugin or standalone)
+            if docker compose version > /dev/null 2>&1; then
+              # Docker Compose plugin is available
+              echo "Using Docker Compose plugin"
+            
+              # Stop and remove containers if they exist
+              sudo docker compose down
+            
+              # Build and start containers
+              sudo docker compose build --no-cache
+              sudo docker compose up -d
+            
+              # Show running containers
+              sudo docker compose ps
+            elif [ -x "$(command -v docker-compose)" ]; then
+              # Docker Compose standalone is available
+              echo "Using Docker Compose standalone"
+            
+              # Stop and remove containers if they exist
+              sudo docker-compose down
+            
+              # Build and start containers
+              sudo docker-compose build --no-cache
+              sudo docker-compose up -d
+            
+              # Show running containers
+              sudo docker-compose ps
+            else
+              # Install Docker Compose
+              echo "Installing Docker Compose..."
               sudo apt-get update
-              sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-              
-              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-              
-              echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-              
-              sudo apt-get update
-              sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-              
-              sudo systemctl start docker
-              sudo systemctl enable docker
-              
-              sudo usermod -aG docker $USER
+              sudo apt-get install -y docker-compose-plugin
+            
+              # Stop and remove containers if they exist
+              sudo docker compose down
+            
+              # Build and start containers
+              sudo docker compose build --no-cache
+              sudo docker compose up -d
+            
+              # Show running containers
+              sudo docker compose ps
             fi
-            
-            if ! [ -x "$(command -v docker-compose)" ] && ! [ -x "$(command -v docker compose)" ]; then
-              echo 'Installing Docker Compose...'
-              DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
-              mkdir -p $DOCKER_CONFIG/cli-plugins
-              COMPOSE_VERSION=v2.24.6
-              sudo curl -SL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
-              sudo chmod +x /usr/local/bin/docker-compose
-              sudo ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
-            fi
-            
-            echo "Using Docker Compose to deploy the application"
-            
-            sudo docker-compose down 
-            
-            sudo docker-compose build --no-cache
-            sudo docker-compose up -d
-            
-            sudo docker-compose ps
-            
-            sudo docker system prune -f || true
