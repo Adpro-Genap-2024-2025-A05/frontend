@@ -53,6 +53,7 @@ jobs:
               sudo apt-get install -y docker-ce docker-ce-cli containerd.io
             fi
             
+            
             # Create/update .env file with environment variables
             cat > .env << EOL
             NEXT_PUBLIC_AUTH_BASE_URL=${{ secrets.NEXT_PUBLIC_AUTH_BASE_URL }}
