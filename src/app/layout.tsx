@@ -9,8 +9,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "TipSen",
-  description: "Low-cost and reliable cargo for your every needs",
+  title: "Adpro",
+  description: "Init FE",
 };
 
 export default function RootLayout({
