@@ -4,6 +4,11 @@ This repository serves as the frontend base for our project, built with Next.js 
 
 ---
 
+## Deployment
+
+Link: [Frontend Deployment](https://sound-hortensia-frontend-adpro-a05-f5cc1fb9.koyeb.app/)
+
+
 ## 📦 Dependencies
 
 The project uses the following key dependencies:
