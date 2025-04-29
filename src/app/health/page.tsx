@@ -22,7 +22,7 @@ const HealthcheckPage = () => {
             } else {
                 setIsUp(false)
             }
-        } catch (_error) {
+        } catch (error) {
             setStatus("Failed to fetch status");
         }
         setIsLoading(false)
