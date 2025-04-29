@@ -48,11 +48,11 @@ jobs:
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_REPO_NAME }}:${{ env.DOCKER_TAG }}
           build-args: |
             NODE_ENV=${{ env.ENV_MODE }}
-            NEXT_PUBLIC_AUTH_BASE_URL=${{ env.API_AUTH_URL }}
-            NEXT_PUBLIC_CHAT_BASE_URL=${{ env.API_CHAT_URL }}
-            NEXT_PUBLIC_KONSULTASI_BASE_URL=${{ env.API_KONSULTASI_URL }}
-            NEXT_PUBLIC_PROFILE_BASE_URL=${{ env.API_PROFILE_URL }}
-            NEXT_PUBLIC_RATING_BASE_URL=${{ env.API_RATING_URL }}
+            NEXT_PUBLIC_AUTH_BASE_URL=${{ env.NEXT_PUBLIC_API_AUTH_URL }}
+            NEXT_PUBLIC_CHAT_BASE_URL=${{ env.NEXT_PUBLIC_API_CHAT_URL }}
+            NEXT_PUBLIC_KONSULTASI_BASE_URL=${{ env.NEXT_PUBLIC_API_KONSULTASI_URL }}
+            NEXT_PUBLIC_PROFILE_BASE_URL=${{ env.NEXT_PUBLIC_API_PROFILE_URL }}
+            NEXT_PUBLIC_RATING_BASE_URL=${{ env.NEXT_PUBLIC_API_RATING_URL }}
             
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.0
