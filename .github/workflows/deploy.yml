@@ -17,7 +17,7 @@ jobs:
         id: env
         run: |
           if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
-            echo "ENV_MODE=production" >> $GITHUB_ENV
+            echo "NODE_ENV=production" >> $GITHUB_ENV
             echo "DOCKER_TAG=latest" >> $GITHUB_ENV
             echo "NEXT_PUBLIC_API_AUTH_URL=${{ secrets.NEXT_PUBLIC_AUTH_BASE_URL }}" >> $GITHUB_ENV
             echo "NEXT_PUBLIC_API_CHAT_URL=${{ secrets.NEXT_PUBLIC_CHAT_BASE_URL }}" >> $GITHUB_ENV
@@ -25,7 +25,7 @@ jobs:
             echo "NEXT_PUBLIC_API_PROFILE_URL=${{ secrets.NEXT_PUBLIC_PROFILE_BASE_URL }}" >> $GITHUB_ENV
             echo "NEXT_PUBLIC_API_RATING_URL=${{ secrets.NEXT_PUBLIC_RATING_BASE_URL }}" >> $GITHUB_ENV
           else
-            echo "ENV_MODE=development" >> $GITHUB_ENV
+            echo "NODE_ENV=development" >> $GITHUB_ENV
             echo "DOCKER_TAG=dev" >> $GITHUB_ENV
             echo "NEXT_PUBLIC_API_AUTH_URL=${{ secrets.NEXT_PUBLIC_AUTH_BASE_URL }}" >> $GITHUB_ENV
             echo "NEXT_PUBLIC_API_CHAT_URL=${{ secrets.NEXT_PUBLIC_CHAT_BASE_URL }}" >> $GITHUB_ENV
@@ -47,7 +47,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_REPO_NAME }}:${{ env.DOCKER_TAG }}
           build-args: |
-            NODE_ENV=${{ env.ENV_MODE }}
+            NODE_ENV=${{ env.NODE_ENV }}
             NEXT_PUBLIC_AUTH_BASE_URL=${{ env.NEXT_PUBLIC_API_AUTH_URL }}
             NEXT_PUBLIC_CHAT_BASE_URL=${{ env.NEXT_PUBLIC_API_CHAT_URL }}
             NEXT_PUBLIC_KONSULTASI_BASE_URL=${{ env.NEXT_PUBLIC_API_KONSULTASI_URL }}
@@ -62,10 +62,10 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_REPO_NAME }}:${{ env.DOCKER_TAG }}
-            docker stop frontend-${{ env.ENV_MODE }} || true
-            docker rm frontend-${{ env.ENV_MODE }} || true
+            docker stop frontend-${{ env.NODE_ENV }} || true
+            docker rm frontend-${{ env.NODE_ENV }} || true
             docker run -d \
-              --name frontend-${{ env.ENV_MODE }} \
-              -p ${{ env.ENV_MODE == 'production' && '3000:3000' || '3001:3000' }} \
+              --name frontend-${{ env.NODE_ENV }} \
+              -p ${{ env.NODE_ENV == 'production' && '3000:3000' || '3001:3000' }} \
               --restart always \
               ${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_REPO_NAME }}:${{ env.DOCKER_TAG }}
