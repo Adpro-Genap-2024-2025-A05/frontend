@@ -1,6 +1,7 @@
 FROM node:20-alpine AS builder
 
 WORKDIR /app
+RUN npm cache clean --force
 
 COPY package.json package-lock.json* ./
 RUN npm ci
@@ -24,7 +25,7 @@ ENV NEXT_PUBLIC_RATING_BASE_URL=$NEXT_PUBLIC_RATING_BASE_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_LINT_DURING_BUILD=false
 
-RUN npm run build
+RUN npm run build --verbose
 
 FROM node:20-alpine AS runner
 
