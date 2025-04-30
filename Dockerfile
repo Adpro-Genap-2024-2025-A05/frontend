@@ -6,7 +6,6 @@ COPY package.json package-lock.json* ./
 RUN npm install
 
 COPY . .
-COPY .env ./
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_LINT_DURING_BUILD=false
