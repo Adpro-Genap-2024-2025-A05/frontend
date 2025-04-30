@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  frontend-production:
+    container_name: frontend-production
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+        NEXT_PUBLIC_AUTH_BASE_URL: ${NEXT_PUBLIC_AUTH_BASE_URL}
+        NEXT_PUBLIC_CHAT_BASE_URL: ${NEXT_PUBLIC_CHAT_BASE_URL}
+        NEXT_PUBLIC_KONSULTASI_BASE_URL: ${NEXT_PUBLIC_KONSULTASI_BASE_URL}
+        NEXT_PUBLIC_PROFILE_BASE_URL: ${NEXT_PUBLIC_PROFILE_BASE_URL}
+        NEXT_PUBLIC_RATING_BASE_URL: ${NEXT_PUBLIC_RATING_BASE_URL}
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - app-network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  frontend-development:
+    container_name: frontend-development
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: development
+        NEXT_PUBLIC_AUTH_BASE_URL: ${NEXT_PUBLIC_AUTH_BASE_URL}
+        NEXT_PUBLIC_CHAT_BASE_URL: ${NEXT_PUBLIC_CHAT_BASE_URL}
+        NEXT_PUBLIC_KONSULTASI_BASE_URL: ${NEXT_PUBLIC_KONSULTASI_BASE_URL}
+        NEXT_PUBLIC_PROFILE_BASE_URL: ${NEXT_PUBLIC_PROFILE_BASE_URL}
+        NEXT_PUBLIC_RATING_BASE_URL: ${NEXT_PUBLIC_RATING_BASE_URL}
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    networks:
+      - app-network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+networks:
+  app-network:
+    driver: bridge
