@@ -45,9 +45,11 @@ jobs:
             cd ~/frontend-deploy
             
             if [ -d ".git" ]; then
-              git pull
+              git fetch
+              git checkout ${{ github.ref_name }}
+              git pull origin ${{ github.ref_name }}
             else
-              git clone ${{ github.server_url }}/${{ github.repository }} .
+              git clone -b ${{ github.ref_name }} ${{ github.server_url }}/${{ github.repository }} .
             fi
             
             cat > .env << EOL
