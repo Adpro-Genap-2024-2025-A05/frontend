@@ -16,23 +16,12 @@ jobs:
       - name: Set environment variables
         id: env
         run: |
-          if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
-            echo "NODE_ENV=production" >> $GITHUB_ENV
-            echo "SERVICE_NAME=frontend-production" >> $GITHUB_ENV
-            echo "NEXT_PUBLIC_API_AUTH_URL=${{ secrets.NEXT_PUBLIC_AUTH_BASE_URL }}" >> $GITHUB_ENV
-            echo "NEXT_PUBLIC_API_CHAT_URL=${{ secrets.NEXT_PUBLIC_CHAT_BASE_URL }}" >> $GITHUB_ENV
-            echo "NEXT_PUBLIC_API_KONSULTASI_URL=${{ secrets.NEXT_PUBLIC_KONSULTASI_BASE_URL }}" >> $GITHUB_ENV
-            echo "NEXT_PUBLIC_API_PROFILE_URL=${{ secrets.NEXT_PUBLIC_PROFILE_BASE_URL }}" >> $GITHUB_ENV
-            echo "NEXT_PUBLIC_API_RATING_URL=${{ secrets.NEXT_PUBLIC_RATING_BASE_URL }}" >> $GITHUB_ENV
-          else
-            echo "NODE_ENV=development" >> $GITHUB_ENV
-            echo "SERVICE_NAME=frontend-development" >> $GITHUB_ENV
-            echo "NEXT_PUBLIC_API_AUTH_URL=${{ secrets.NEXT_PUBLIC_AUTH_BASE_URL }}" >> $GITHUB_ENV
-            echo "NEXT_PUBLIC_API_CHAT_URL=${{ secrets.NEXT_PUBLIC_CHAT_BASE_URL }}" >> $GITHUB_ENV
-            echo "NEXT_PUBLIC_API_KONSULTASI_URL=${{ secrets.NEXT_PUBLIC_KONSULTASI_BASE_URL }}" >> $GITHUB_ENV
-            echo "NEXT_PUBLIC_API_PROFILE_URL=${{ secrets.NEXT_PUBLIC_PROFILE_BASE_URL }}" >> $GITHUB_ENV
-            echo "NEXT_PUBLIC_API_RATING_URL=${{ secrets.NEXT_PUBLIC_RATING_BASE_URL }}" >> $GITHUB_ENV
-          fi
+          echo "NODE_ENV=development" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_API_AUTH_URL=${{ secrets.NEXT_PUBLIC_AUTH_BASE_URL }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_API_CHAT_URL=${{ secrets.NEXT_PUBLIC_CHAT_BASE_URL }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_API_KONSULTASI_URL=${{ secrets.NEXT_PUBLIC_KONSULTASI_BASE_URL }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_API_PROFILE_URL=${{ secrets.NEXT_PUBLIC_PROFILE_BASE_URL }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_API_RATING_URL=${{ secrets.NEXT_PUBLIC_RATING_BASE_URL }}" >> $GITHUB_ENV
             
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.0
@@ -53,7 +42,7 @@ jobs:
             fi
             
             cat > .env << EOL
-            NODE_ENV=${{ env.NODE_ENV }}
+            NODE_ENV=development
             NEXT_PUBLIC_AUTH_BASE_URL=${{ env.NEXT_PUBLIC_API_AUTH_URL }}
             NEXT_PUBLIC_CHAT_BASE_URL=${{ env.NEXT_PUBLIC_API_CHAT_URL }}
             NEXT_PUBLIC_KONSULTASI_BASE_URL=${{ env.NEXT_PUBLIC_API_KONSULTASI_URL }}
@@ -61,8 +50,8 @@ jobs:
             NEXT_PUBLIC_RATING_BASE_URL=${{ env.NEXT_PUBLIC_API_RATING_URL }}
             EOL
             
-            docker-compose stop ${{ env.SERVICE_NAME }} || true
-            docker-compose rm -f ${{ env.SERVICE_NAME }} || true
+            docker-compose stop frontend || true
+            docker-compose rm -f frontend || true
             
-            docker-compose build ${{ env.SERVICE_NAME }}
-            docker-compose up -d ${{ env.SERVICE_NAME }}
+            docker-compose build frontend
+            docker-compose up -d frontend
