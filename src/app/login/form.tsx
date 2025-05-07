@@ -5,8 +5,11 @@ import { AlertCircle } from 'lucide-react';
 import authApi from "@/api/authApi";
 
 type LoginResponse = {
-  token: string;
-  role: string;
+  accessToken: string;
+  email: string;
+  name: string;
+  role: 'PACILIAN' | 'CAREGIVER'; 
+  expiresIn: number;
 };
 
 export default function LoginForm() {
@@ -56,20 +59,21 @@ export default function LoginForm() {
         }
       }).json<LoginResponse>();
 
-      if (response?.token) {
-        localStorage.setItem('token', response.token);
+      if (response?.accessToken) {
+        localStorage.setItem('token', response.accessToken);
         localStorage.setItem('userRole', response.role);
-
+      
         if (response.role === 'PACILIAN') {
-          router.push('/dashboard/pacilian');
+          router.push('/homepage/pacilian');
         } else if (response.role === 'CAREGIVER') {
-          router.push('/dashboard/caregiver');
+          router.push('/homepage/caregiver');
         } else {
-          router.push('/dashboard');
+          router.push('/homepage');
         }
       } else {
         setError('Invalid login response');
       }
+      
     } catch (err: any) {
       console.error('Login error:', err);
       if (err.response?.status === 401) {
