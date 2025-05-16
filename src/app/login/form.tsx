@@ -4,6 +4,14 @@ import { useRouter } from 'next/navigation';
 import { AlertCircle } from 'lucide-react';
 import authApi from "@/api/authApi";
 
+// Tambahkan tipe response wrapper sesuai backend
+type BaseResponse<T> = {
+  status: number;
+  message: string;
+  timestamp: string;
+  data: T;
+};
+
 type LoginResponse = {
   token: string;
   role: string;
@@ -49,17 +57,23 @@ export default function LoginForm() {
     setIsSubmitting(true);
 
     try {
-      const response = await authApi.post('login', {
+      const responseWrapper = await authApi.post('auth/login', {
         json: {
           email: form.email,
           password: form.password
         }
-      }).json<LoginResponse>();
+      }).json<BaseResponse<LoginResponse>>(); 
+
+      const response = responseWrapper.data; 
 
       if (response?.token) {
         localStorage.setItem('token', response.token);
         localStorage.setItem('userRole', response.role);
+<<<<<<< Updated upstream
 
+=======
+        
+>>>>>>> Stashed changes
         if (response.role === 'PACILIAN') {
           router.push('/dashboard/pacilian');
         } else if (response.role === 'CAREGIVER') {
@@ -70,6 +84,10 @@ export default function LoginForm() {
       } else {
         setError('Invalid login response');
       }
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
     } catch (err: any) {
       console.error('Login error:', err);
       if (err.response?.status === 401) {
