@@ -130,7 +130,7 @@ export default function RegistrationForm() {
     }
   
     // Create the appropriate payload based on role
-    let endpoint = form.role === "PACILIAN" ? "register/pacilian" : "register/caregiver";
+    let endpoint = form.role === "PACILIAN" ? "auth/register/pacilian" : "auth/register/caregiver";
     
     let payload;
     if (form.role === "PACILIAN") {
