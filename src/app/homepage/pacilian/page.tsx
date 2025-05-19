@@ -1,11 +1,21 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 
 export default function PandaCareHomepage() {
-  const [username, setUsername] = useState('Pacilian');
   const router = useRouter();
+  const [username, setUsername] = useState('Pacilian');
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('userRole');
+
+    if (!token) {
+      router.replace('/login');
+    } else if (role !== 'PACILIAN') {
+      router.replace('/homepage/caregiver');
+    }
+  }, [router]);
 
   const handleChatWithDoctor = () => {
     router.push('/chat/sessions');
