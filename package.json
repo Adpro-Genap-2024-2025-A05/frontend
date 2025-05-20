@@ -11,12 +11,8 @@
   "dependencies": {
     "date-fns": "^4.1.0",
     "ky": "^1.7.5",
-<<<<<<< HEAD
     "lucide-react": "^0.507.0",
-    "next": "15.2.3",
-=======
     "next": ">=15.2.4",
->>>>>>> 019683ceca0c9e1f38faeb04d4ec3c1e5894d8b3
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
