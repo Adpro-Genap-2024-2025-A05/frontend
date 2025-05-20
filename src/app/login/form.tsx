@@ -8,7 +8,7 @@ import authApi from "@/api/authApi";
 type BaseResponse<T> = {
   status: number;
   message: string;
-  timestamp: string;
+  createdAt: string;
   data: T;
 };
 

@@ -1,14 +1,15 @@
-import React from 'react';
-import { formatDistanceToNow } from 'date-fns';
+import React, { useState } from 'react';
+import { Edit, Trash, Check, X } from 'lucide-react';
 import { ChatBubble } from './ChatBubble';
 
-export interface ChatMessageProps {
+interface ChatMessageProps {
   id: string;
   content: string;
   senderId: string;
-  timestamp: string;
-  isDeleted: boolean;
-  isEdited: boolean;
+  createdAt: string;
+  editedAt?: string;
+  isDeleted?: boolean;
+  isEdited?: boolean;
   currentUserId: string;
   onEdit?: (messageId: string, content: string) => void;
   onDelete?: (messageId: string) => void;
@@ -18,22 +19,42 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   id,
   content,
   senderId,
-  timestamp,
-  isDeleted,
-  isEdited,
+  createdAt,
+  editedAt,
+  isDeleted = false,
+  isEdited = false,
   currentUserId,
   onEdit,
   onDelete,
 }) => {
-  const [isEditing, setIsEditing] = React.useState(false);
-  const [editContent, setEditContent] = React.useState(content);
-  const isOwnMessage = senderId === currentUserId;
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(content);
   
-  const formattedTime = React.useMemo(() => {
-    return formatDistanceToNow(new Date(timestamp), { addSuffix: true });
-  }, [timestamp]);
+  const isOwnMessage = senderId === currentUserId;
 
-  const handleEdit = () => {
+  // Format time to display in HH:MM format
+  const formatTime = (timeString: string) => {
+    if (!timeString) return '';
+    
+    const date = new Date(timeString);
+    if (isNaN(date.getTime())) return '';
+    
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const createdTime = formatTime(createdAt);
+  const editedTime = formatTime(editedAt || '');
+
+  const handleStartEdit = () => {
+    setIsEditing(true);
+    setEditContent(content);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+  };
+
+  const handleSaveEdit = () => {
     if (onEdit) {
       onEdit(id, editContent);
       setIsEditing(false);
@@ -48,48 +69,52 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
 
   return (
     <div className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-4`}>
-      <div className="max-w-[70%]">
+      <div className="max-w-xs md:max-w-md">
         <ChatBubble isOwnMessage={isOwnMessage}>
-          {isDeleted ? (
-            <span className="italic text-gray-500">This message was deleted</span>
-          ) : isEditing ? (
-            <div className="flex flex-col">
+          {isEditing ? (
+            <div>
               <textarea
-                className="w-full p-2 border rounded mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
+                className="w-full p-2 border rounded text-gray-700 resize-none focus:outline-none focus:ring-2 focus:ring-blue-300"
+                rows={2}
                 autoFocus
               />
-              <div className="flex justify-end gap-2">
-                <button
-                  onClick={() => setIsEditing(false)}
-                  className="px-2 py-1 text-sm rounded bg-gray-200 hover:bg-gray-300"
+              <div className="flex justify-end space-x-2 mt-2">
+                <button 
+                  onClick={handleCancelEdit} 
+                  className="p-1 rounded-full hover:bg-gray-200 text-gray-600"
                 >
-                  Cancel
+                  <X size={16} />
                 </button>
-                <button
-                  onClick={handleEdit}
-                  className="px-2 py-1 text-sm rounded bg-blue-500 hover:bg-blue-600 text-white"
+                <button 
+                  onClick={handleSaveEdit} 
+                  className="p-1 rounded-full hover:bg-blue-200 text-blue-600"
                 >
-                  Save
+                  <Check size={16} />
                 </button>
               </div>
             </div>
           ) : (
             <>
-              <p>{content}</p>
-              {isEdited && <span className="text-xs text-gray-500 ml-1">(edited)</span>}
+              <p className={isDeleted ? 'italic text-gray-400' : ''}>
+                {isDeleted ? 'Pesan telah dihapus' : content}
+              </p>
+              
+              <div className="flex justify-between items-center mt-1 text-xs">
+                <span className={isOwnMessage ? 'text-blue-100' : 'text-gray-500'}>
+                  {isEdited ? `(edited • ${editedTime})` : createdTime}
+                </span>
+              </div>
             </>
           )}
-          <div className="text-xs text-gray-500 mt-1">
-            {formattedTime}
-          </div>
         </ChatBubble>
-        
+
+        {/* Action menu for own messages that are not deleted */}
         {isOwnMessage && !isDeleted && !isEditing && (
           <div className="flex justify-end mt-1 space-x-2">
             <button 
-              onClick={() => setIsEditing(true)} 
+              onClick={handleStartEdit} 
               className="text-xs text-gray-500 hover:text-blue-500"
             >
               Edit

@@ -21,7 +21,7 @@ interface ChatSession {
   updatedAt: string;
   lastMessage?: {
     content: string;
-    timestamp: string;
+    createdAt: string;
   };
 }
 
@@ -47,9 +47,9 @@ export default function ChatSessionsPage() {
 
         const response = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/chat/session/user`, {
           headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
+            Authorization: `Bearer ${token}`
+          }
+        });        
 
         if (!response.ok) {
           throw new Error('Gagal mengambil data sesi chat');
@@ -74,7 +74,7 @@ export default function ChatSessionsPage() {
             lastMessage: session.messages?.length
               ? {
                   content: session.messages[session.messages.length - 1].content,
-                  timestamp: session.messages[session.messages.length - 1].createdAt,
+                  createdAt: session.messages[session.messages.length - 1].createdAt,
                 }
               : undefined,
           } as ChatSession;
@@ -97,8 +97,8 @@ export default function ChatSessionsPage() {
   );
 
   const handleSessionClick = (sessionId: string) => {
-    router.push(`/chat/${sessionId}`);
-  };
+    router.push(`/chat/roomchat/${sessionId}`);
+  };  
 
   return (
     <div className="container mx-auto max-w-3xl p-4">

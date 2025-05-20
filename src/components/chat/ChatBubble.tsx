@@ -1,4 +1,5 @@
 import React from 'react';
+import { useState } from 'react';
 
 interface ChatBubbleProps {
   children: React.ReactNode;
@@ -8,11 +9,11 @@ interface ChatBubbleProps {
 export const ChatBubble: React.FC<ChatBubbleProps> = ({ children, isOwnMessage }) => {
   return (
     <div
-      className={`p-3 rounded-lg ${
+      className={`${
         isOwnMessage
-          ? 'bg-blue-500 text-white rounded-br-none'
-          : 'bg-gray-200 text-gray-800 rounded-bl-none'
-      }`}
+          ? 'bg-blue-500 text-white rounded-t-lg rounded-bl-lg'
+          : 'bg-white text-gray-700 rounded-t-lg rounded-br-lg shadow'
+      } p-3`}
     >
       {children}
     </div>

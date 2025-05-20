@@ -8,12 +8,11 @@ interface ChatSessionCardProps {
       id: string;
       name: string;
       role: 'pacilian' | 'caregiver';
-      avatar?: string | null;
     };
     updatedAt: string;
     lastMessage?: {
       content: string;
-      timestamp: string;
+      createdAt: string;
     };
   };
   onClick: () => void;
@@ -24,7 +23,7 @@ export default function ChatSessionCard({ session, onClick }: ChatSessionCardPro
     const date = new Date(dateString);
     const now = new Date();
     const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-    
+
     if (diffInDays === 0) {
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } else if (diffInDays === 1) {
@@ -36,12 +35,12 @@ export default function ChatSessionCard({ session, onClick }: ChatSessionCardPro
     }
   };
 
-  const displayTime = session.lastMessage 
-    ? formatDate(session.lastMessage.timestamp) 
+  const displayTime = session.lastMessage
+    ? formatDate(session.lastMessage.createdAt)
     : formatDate(session.updatedAt);
 
-  const previewText = session.lastMessage 
-    ? session.lastMessage.content.length > 50 
+  const previewText = session.lastMessage
+    ? session.lastMessage.content.length > 50
       ? `${session.lastMessage.content.substring(0, 50)}...`
       : session.lastMessage.content
     : 'Belum ada pesan';
@@ -52,22 +51,14 @@ export default function ChatSessionCard({ session, onClick }: ChatSessionCardPro
       onClick={onClick}
     >
       <div className="flex items-center">
-        {/* Avatar */}
+        {/* Ikon user tetap, tidak dinamis */}
         <div className="mr-3">
-          {session.user2.avatar ? (
-            <img
-              src={session.user2.avatar}
-              alt={session.user2.name}
-              className="w-12 h-12 rounded-full"
-            />
-          ) : (
-            <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-              <User size={24} className="text-gray-500" />
-            </div>
-          )}
+          <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+            <User size={24} className="text-gray-500" />
+          </div>
         </div>
 
-        {/* Content */}
+        {/* Konten teks */}
         <div className="flex-1">
           <div className="flex justify-between">
             <h3 className="font-medium">{session.user2.name}</h3>
