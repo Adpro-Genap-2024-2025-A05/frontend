@@ -21,12 +21,8 @@ const decodeJwt = (token: string): JwtPayload | null => {
   try {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    );
+    const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
+    const jsonPayload = atob(padded);
     return JSON.parse(jsonPayload);
   } catch (error) {
     console.error('Error decoding JWT', error);
