@@ -1,21 +1,28 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import useAuth from '@/hooks/useAuth';
 
 export default function CaregiverHomePage() {
   const router = useRouter();
+  const { user, isLoading } = useAuth();
   const [username, setUsername] = useState('CareGiver');
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const role = localStorage.getItem('userRole');
-
-    if (!token) {
-      router.replace('/login');
-    } else if (role !== 'CAREGIVER') {
-      router.replace('/homepage/pacilian');
+    if (user) {
+      setUsername(user.name);
     }
-  }, [router]);
+  }, [user]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (!user) {
+        router.replace('/login');
+      } else if (user.role !== 'CAREGIVER') {
+        router.replace('/homepage/pacilian');
+      }
+    }
+  }, [user, isLoading, router]);
 
   const handleChatWithPacilian = () => {
     router.push('/chat/sessions');

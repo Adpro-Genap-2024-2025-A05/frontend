@@ -2,25 +2,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle } from 'lucide-react';
-import authApi from "@/api/authApi";
-
-type BaseResponse<T> = {
-  status: number;
-  message: string;
-  timestamp: string;
-  data: T;
-};
-
-type LoginResponse = {
-  accessToken: string;
-  email: string;
-  name: string;
-  role: string;
-  expiresIn: number;
-};
+import useAuth from '@/hooks/useAuth';
 
 export default function LoginForm() {
   const router = useRouter();
+  const { login, isLoading: authLoading } = useAuth();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({
@@ -59,27 +46,14 @@ export default function LoginForm() {
     setIsSubmitting(true);
 
     try {
-      const responseWrapper = await authApi.post('auth/login', {
-        json: {
-          email: form.email,
-          password: form.password
-        }
-      }).json<BaseResponse<LoginResponse>>();
-      console.log('Full response wrapper:', responseWrapper);
-      const response = responseWrapper.data;
-      console.log('Extracted response:', response);
+      const role = await login(form.email, form.password);
 
-      if (response?.accessToken) {
-        localStorage.setItem('token', response.accessToken);
-        if (response.role === 'PACILIAN') {
-          router.push('/homepage/pacilian');
-        } else if (response.role === 'CAREGIVER') {
-          router.push('/homepage/caregiver');
-        } else {
-          router.push('/homepage');
-        }
+      if (role === 'PACILIAN') {
+        router.push('/homepage/pacilian');
+      } else if (role === 'CAREGIVER') {
+        router.push('/homepage/caregiver');
       } else {
-        setError('Invalid login response');
+        router.push('/homepage');
       }
     } catch (err: any) {
       console.error('Login error:', err);

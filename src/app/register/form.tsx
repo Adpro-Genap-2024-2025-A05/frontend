@@ -1,10 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {  
-  AlertCircle
-} from "lucide-react";
-import authApi from "@/api/authApi";
+import { AlertCircle } from "lucide-react";
+import authService from "@/api/authApi";
 
 export default function RegistrationForm() {
   const router = useRouter();
@@ -85,8 +83,6 @@ export default function RegistrationForm() {
       return;
     }
   
-    let endpoint = form.role === "PACILIAN" ? "auth/register/pacilian" : "auth/register/caregiver";
-    
     let payload;
     if (form.role === "PACILIAN") {
       payload = {
@@ -112,9 +108,12 @@ export default function RegistrationForm() {
     }
   
     try {
-      await authApi.post(endpoint, {
-        json: payload
-      }).json();
+      if (form.role === "PACILIAN") {
+        await authService.registerPacilian(payload);
+      } else {
+        await authService.registerCaregiver(payload);
+      }
+      
       router.push("/login");
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -124,7 +123,7 @@ export default function RegistrationForm() {
       }
       setIsSubmitting(false);
     }
-  };   
+  };  
 
   return (
     <div className="w-full bg-gradient-to-b from-white to-white py-12 px-12 ">
