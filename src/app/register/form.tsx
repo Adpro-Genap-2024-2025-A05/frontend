@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
+import {  
   AlertCircle
 } from "lucide-react";
 import authApi from "@/api/authApi";
@@ -16,7 +16,7 @@ export default function RegistrationForm() {
     nik: "",
     address: "",
     phoneNumber: "",
-    role: "PACILIAN",
+    role: "PACILIAN", 
     medicalHistory: "",
     speciality: "",
     workAddress: "",
@@ -30,10 +30,10 @@ export default function RegistrationForm() {
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-
+  
   const validateForm = () => {
     const errors: string[] = [];
-
+  
     if (!form.email) {
       errors.push("Email wajib diisi.");
     } else if (!/^[^\s@]+@([^\s@.]+\.)+[^\s@.]+$/.test(form.email)) {
@@ -54,7 +54,7 @@ export default function RegistrationForm() {
     if (!form.address.trim()) {
       errors.push("Alamat wajib diisi.");
     }
-
+  
     if (form.role === "PACILIAN") {
       if (!form.medicalHistory.trim()) {
         errors.push("Riwayat medis wajib diisi.");
@@ -67,9 +67,9 @@ export default function RegistrationForm() {
         errors.push("Alamat tempat kerja wajib diisi.");
       }
     }
-
+  
     return errors;
-  };
+  };  
 
   const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>
@@ -77,16 +77,16 @@ export default function RegistrationForm() {
     e.preventDefault();
     setError("");
     setIsSubmitting(true);
-
+  
     const errors = validateForm();
     if (errors.length > 0) {
       setError(errors.join(" "));
       setIsSubmitting(false);
       return;
     }
-
+  
     let endpoint = form.role === "PACILIAN" ? "auth/register/pacilian" : "auth/register/caregiver";
-
+    
     let payload;
     if (form.role === "PACILIAN") {
       payload = {
@@ -108,9 +108,9 @@ export default function RegistrationForm() {
         phoneNumber: form.phoneNumber,
         speciality: form.speciality,
         workAddress: form.workAddress
-      };
+      };      
     }
-
+  
     try {
       await authApi.post(endpoint, {
         json: payload
@@ -124,21 +124,21 @@ export default function RegistrationForm() {
       }
       setIsSubmitting(false);
     }
-  };
+  };   
 
   return (
     <div className="w-full bg-gradient-to-b from-white to-white py-12 px-12 ">
       <div className="text-left mb-8">
         <h1 className="text-5xl font-bold text-blue-400">Register</h1>
       </div>
-
+  
       {error && (
         <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded flex items-center">
           <AlertCircle className="w-5 h-5 mr-2" />
           <p>{error}</p>
         </div>
       )}
-
+  
       <div className="space-y-6">
         <div>
           <label className="block text-xl font-medium text-gray-700 mb-2">I am registering as:</label>
@@ -167,7 +167,7 @@ export default function RegistrationForm() {
             </label>
           </div>
         </div>
-
+  
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-2">Email</label>
@@ -180,7 +180,7 @@ export default function RegistrationForm() {
               placeholder="email@example.com"
             />
           </div>
-
+  
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-2">Full Name</label>
             <input
@@ -192,7 +192,7 @@ export default function RegistrationForm() {
               placeholder="John Doe"
             />
           </div>
-
+  
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-2">Password</label>
             <input
@@ -204,7 +204,7 @@ export default function RegistrationForm() {
               placeholder="••••••••"
             />
           </div>
-
+  
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-2">NIK (National ID)</label>
             <input
@@ -216,7 +216,7 @@ export default function RegistrationForm() {
               placeholder="1234567890123456"
             />
           </div>
-
+  
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-2">Phone Number</label>
             <input
@@ -228,7 +228,7 @@ export default function RegistrationForm() {
               placeholder="08123456789"
             />
           </div>
-
+  
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-600 mb-2">Address</label>
             <input
@@ -241,7 +241,7 @@ export default function RegistrationForm() {
             />
           </div>
         </div>
-
+  
         {form.role === "PACILIAN" && (
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-2">Medical History</label>
@@ -255,7 +255,7 @@ export default function RegistrationForm() {
             />
           </div>
         )}
-
+  
         {form.role === "CAREGIVER" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -269,7 +269,7 @@ export default function RegistrationForm() {
                 placeholder="e.g. Cardiologist, Nurse, Pharmacist"
               />
             </div>
-
+  
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-2">Work Address</label>
               <input
@@ -283,7 +283,7 @@ export default function RegistrationForm() {
             </div>
           </div>
         )}
-
+  
         <div className="flex items-center justify-between pt-2">
           <a href="/login" className="text-sm font-medium text-blue-400 hover:text-blue-500">
             Already have an account?
