@@ -71,7 +71,6 @@ export default function LoginForm() {
 
       if (response?.accessToken) {
         localStorage.setItem('token', response.accessToken);
-        localStorage.setItem('userRole', response.role);
         if (response.role === 'PACILIAN') {
           router.push('/homepage/pacilian');
         } else if (response.role === 'CAREGIVER') {
