@@ -3,26 +3,25 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm install
 
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_LINT_DURING_BUILD=false
 
-RUN npm run build
+RUN npm run build --verbose
 
 FROM node:20-alpine AS runner
 
 WORKDIR /app
 
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
-
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
 
 COPY --from=builder /app/next.config.* ./
 COPY --from=builder /app/public ./public
