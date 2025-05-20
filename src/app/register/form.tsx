@@ -34,7 +34,9 @@ export default function RegistrationForm() {
   const validateForm = () => {
     const errors: string[] = [];
   
-    if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    if (!form.email) {
+      errors.push("Email wajib diisi.");
+    } else if (!/^[^\s@]+@([^\s@.]+\.)+[^\s@.]+$/.test(form.email)) {
       errors.push("Email tidak valid.");
     }
     if (!form.password.trim()) {
