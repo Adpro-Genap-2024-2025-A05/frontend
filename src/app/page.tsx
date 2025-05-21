@@ -1,5 +1,4 @@
 'use client';
-import { useEffect, useState } from 'react';
 import useAuth from '@/hooks/useAuth';
 import CaregiverHomePage from '@/components/homepage/Caregiver';
 import PacilianHomePage from '@/components/homepage/Pacilian';
@@ -7,13 +6,12 @@ import UnauthenticatedLanding from '@/components/homepage/UnauthenticatedLanding
 
 export default function RootPage() {
   const { user, isLoading } = useAuth();
-  const [username, setUsername] = useState('');
 
-  useEffect(() => {
-    if (user) {
-      setUsername(user.name || (user.role === 'CAREGIVER' ? 'CareGiver' : 'Pacilian'));
-    }
-  }, [user]);
+  const getDisplayName = () => {
+    if (!user) return '';
+    if (user.name) return user.name;
+    return user.role === 'CAREGIVER' ? 'CareGiver' : 'Pacilian';
+  };
 
   if (isLoading) {
     return (
@@ -26,14 +24,10 @@ export default function RootPage() {
   }
 
   if (user) {
-    return (
-      <>
-        {user.role === 'CAREGIVER' ? (
-          <CaregiverHomePage username={username} />
-        ) : (
-          <PacilianHomePage username={username} />
-        )}
-      </>
+    return user.role === 'CAREGIVER' ? (
+      <CaregiverHomePage username={getDisplayName()} />
+    ) : (
+      <PacilianHomePage username={getDisplayName()} />
     );
   }
 

@@ -1,3 +1,5 @@
+import api from '@/middleware/apiMiddleware';
+
 const TOKEN_KEY = 'token';
 
 export interface JwtPayload {
@@ -31,17 +33,8 @@ const decodeJwt = (token: string): JwtPayload | null => {
 
 const verifyToken = async (token: string): Promise<boolean> => {
   try {
-    const response = await fetch('/auth/verify', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({ token }),
-    });
-    if (!response.ok) return false;
-    const data = await response.json();
-    return data.valid === true;
+    const response = await api.auth.post('auth/verify').json<{ data?: { valid: boolean } }>();
+    return response?.data?.valid === true;
   } catch (error) {
     console.error('Token verification failed', error);
     return false;
@@ -88,13 +81,14 @@ const tokenService = {
     localStorage.removeItem(TOKEN_KEY);
   },
 
-  getUser: async (): Promise<UserData | null> => {
+  getUser: (): UserData | null => {
     const token = tokenService.getToken();
     if (!token) return null;
-    const valid = await verifyToken(token);
-    if (!valid) return null;
+    if (tokenService.isTokenExpired()) return null;
+    
     const payload = decodeJwt(token);
     if (!payload) return null;
+    
     return {
       id: payload.id,
       email: payload.sub,

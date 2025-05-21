@@ -19,20 +19,22 @@ export default function useAuth() {
 
   useEffect(() => {
     const initAuth = async () => {
-      const storedUser = await tokenService.getUser();
+      if (tokenService.isTokenExpired()) {
+        tokenService.clearAuth();
+        setUser(null);
+        setIsLoading(false);
+        return;
+      }
+      
+      const storedUser = tokenService.getUser();
       
       if (storedUser) {
-        if (tokenService.isTokenExpired()) {
+        const isValid = await authService.isAuthenticated();
+        if (isValid) {
+          setUser(storedUser);
+        } else {
           tokenService.clearAuth();
           setUser(null);
-        } else {
-          const isValid = await authService.isAuthenticated();
-          if (isValid) {
-            setUser(storedUser);
-          } else {
-            tokenService.clearAuth();
-            setUser(null);
-          }
         }
       }
       
