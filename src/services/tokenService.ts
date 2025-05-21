@@ -1,5 +1,4 @@
 const TOKEN_KEY = 'token';
-const USER_KEY = 'user';
 
 export interface JwtPayload {
   role: string;
@@ -30,21 +29,29 @@ const decodeJwt = (token: string): JwtPayload | null => {
   }
 };
 
+const verifyToken = async (token: string): Promise<boolean> => {
+  try {
+    const response = await fetch('/auth/verify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ token }),
+    });
+    if (!response.ok) return false;
+    const data = await response.json();
+    return data.valid === true;
+  } catch (error) {
+    console.error('Token verification failed', error);
+    return false;
+  }
+};
+
 const tokenService = {
   setToken: (token: string): void => {
     if (typeof window === 'undefined') return;
     localStorage.setItem(TOKEN_KEY, token);
-    
-    const payload = decodeJwt(token);
-    if (payload) {
-      const userData: UserData = {
-        id: payload.id,
-        email: payload.sub,
-        name: payload.name,
-        role: payload.role
-      };
-      tokenService.setUser(userData);
-    }
   },
 
   getToken: (): string | null => {
@@ -55,10 +62,8 @@ const tokenService = {
   isTokenExpired: (): boolean => {
     const token = tokenService.getToken();
     if (!token) return true;
-    
     const payload = decodeJwt(token);
     if (!payload) return true;
-    
     const currentTime = Math.floor(Date.now() / 1000);
     return payload.exp < currentTime;
   },
@@ -66,17 +71,14 @@ const tokenService = {
   getTokenExpiryTime: (): number => {
     const token = tokenService.getToken();
     if (!token) return 0;
-    
     const payload = decodeJwt(token);
     if (!payload) return 0;
-    
     return payload.exp * 1000; 
   },
 
   getTokenRemainingTime: (): number => {
     const expiry = tokenService.getTokenExpiryTime();
     if (expiry === 0) return 0;
-    
     const remaining = expiry - Date.now();
     return remaining > 0 ? remaining : 0;
   },
@@ -86,34 +88,25 @@ const tokenService = {
     localStorage.removeItem(TOKEN_KEY);
   },
 
-  setUser: (userData: UserData): void => {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(USER_KEY, JSON.stringify(userData));
-  },
-
-  getUser: (): UserData | null => {
-    if (typeof window === 'undefined') return null;
-    const userStr = localStorage.getItem(USER_KEY);
-    if (!userStr) return null;
-    
-    try {
-      return JSON.parse(userStr);
-    } catch (error) {
-      console.error('Error parsing user data', error);
-      return null;
-    }
-  },
-
-  clearUser: (): void => {
-    if (typeof window === 'undefined') return;
-    localStorage.removeItem(USER_KEY);
+  getUser: async (): Promise<UserData | null> => {
+    const token = tokenService.getToken();
+    if (!token) return null;
+    const valid = await verifyToken(token);
+    if (!valid) return null;
+    const payload = decodeJwt(token);
+    if (!payload) return null;
+    return {
+      id: payload.id,
+      email: payload.sub,
+      name: payload.name,
+      role: payload.role,
+    };
   },
 
   clearAuth: (): void => {
     tokenService.clearToken();
-    tokenService.clearUser();
   },
-  
+
   parseToken: (): JwtPayload | null => {
     const token = tokenService.getToken();
     if (!token) return null;

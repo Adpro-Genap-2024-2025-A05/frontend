@@ -19,7 +19,7 @@ export default function useAuth() {
 
   useEffect(() => {
     const initAuth = async () => {
-      const storedUser = tokenService.getUser();
+      const storedUser = await tokenService.getUser();
       
       if (storedUser) {
         if (tokenService.isTokenExpired()) {
@@ -56,7 +56,7 @@ export default function useAuth() {
     try {
       const loginData = await authService.login(email, password);
       
-      const userData = tokenService.getUser();
+      const userData = await tokenService.getUser();
       if (userData) {
         setUser(userData);
       }
