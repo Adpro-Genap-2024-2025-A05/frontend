@@ -2,9 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {  
-  AlertCircle,
-  PlusCircle,
-  Trash2
+  AlertCircle
 } from "lucide-react";
 import authApi from "@/api/authApi";
 
@@ -22,7 +20,6 @@ export default function RegistrationForm() {
     medicalHistory: "",
     speciality: "",
     workAddress: "",
-    workingSchedules: [{ day: "MONDAY", startTime: "08:00", endTime: "16:00" }],
   });
 
   const [error, setError] = useState("");
@@ -33,31 +30,13 @@ export default function RegistrationForm() {
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-
-  const handleScheduleChange = (index: number, field: string, value: string) => {
-    const updatedSchedules = [...form.workingSchedules];
-    updatedSchedules[index] = { ...updatedSchedules[index], [field]: value };
-    setForm({ ...form, workingSchedules: updatedSchedules });
-  };
-
-  const addSchedule = () => {
-    setForm({
-      ...form,
-      workingSchedules: [...form.workingSchedules, { day: "MONDAY", startTime: "08:00", endTime: "16:00" }]
-    });
-  };
-
-  const removeSchedule = (index: number) => {
-    if (form.workingSchedules.length > 1) {
-      const updatedSchedules = form.workingSchedules.filter((_, i) => i !== index);
-      setForm({ ...form, workingSchedules: updatedSchedules });
-    }
-  };
   
   const validateForm = () => {
     const errors: string[] = [];
   
-    if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    if (!form.email) {
+      errors.push("Email wajib diisi.");
+    } else if (!/^[^\s@]+@([^\s@.]+\.)+[^\s@.]+$/.test(form.email)) {
       errors.push("Email tidak valid.");
     }
     if (!form.password.trim()) {
@@ -87,29 +66,6 @@ export default function RegistrationForm() {
       if (!form.workAddress.trim()) {
         errors.push("Alamat tempat kerja wajib diisi.");
       }
-      
-      // Validate working schedules
-      if (form.workingSchedules.length === 0) {
-        errors.push("Minimal satu jadwal kerja harus ditambahkan.");
-      } else {
-        for (let i = 0; i < form.workingSchedules.length; i++) {
-          const schedule = form.workingSchedules[i];
-          if (!schedule.day) {
-            errors.push(`Jadwal #${i+1}: Hari wajib dipilih.`);
-          }
-          if (!schedule.startTime) {
-            errors.push(`Jadwal #${i+1}: Waktu mulai wajib diisi.`);
-          }
-          if (!schedule.endTime) {
-            errors.push(`Jadwal #${i+1}: Waktu selesai wajib diisi.`);
-          }
-          
-          // Check if end time is after start time
-          if (schedule.startTime && schedule.endTime && schedule.startTime >= schedule.endTime) {
-            errors.push(`Jadwal #${i+1}: Waktu selesai harus setelah waktu mulai.`);
-          }
-        }
-      }
     }
   
     return errors;
@@ -129,7 +85,6 @@ export default function RegistrationForm() {
       return;
     }
   
-    // Create the appropriate payload based on role
     let endpoint = form.role === "PACILIAN" ? "auth/register/pacilian" : "auth/register/caregiver";
     
     let payload;
@@ -152,16 +107,7 @@ export default function RegistrationForm() {
         address: form.address,
         phoneNumber: form.phoneNumber,
         speciality: form.speciality,
-        workAddress: form.workAddress,
-        workingSchedules: form.workingSchedules.map(s => ({
-          dayOfWeek: s.day,
-          timeChoices: [
-            {
-              startTime: s.startTime,
-              endTime: s.endTime
-            }
-          ]
-        }))
+        workAddress: form.workAddress
       };      
     }
   
@@ -179,8 +125,6 @@ export default function RegistrationForm() {
       setIsSubmitting(false);
     }
   };   
-
-  const days = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"];
 
   return (
     <div className="w-full bg-gradient-to-b from-white to-white py-12 px-12 ">
@@ -313,101 +257,31 @@ export default function RegistrationForm() {
         )}
   
         {form.role === "CAREGIVER" && (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Speciality</label>
-                <input
-                  type="text"
-                  name="speciality"
-                  value={form.speciality}
-                  onChange={handleChange}
-                  className="block w-full rounded-md border border-gray-300 shadow-sm px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                  placeholder="e.g. Cardiologist, Nurse, Pharmacist"
-                />
-              </div>
-    
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Work Address</label>
-                <input
-                  type="text"
-                  name="workAddress"
-                  value={form.workAddress}
-                  onChange={handleChange}
-                  className="block w-full rounded-md border border-gray-300 shadow-sm px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                  placeholder="Hospital/Clinic Address"
-                />
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-2">Speciality</label>
+              <input
+                type="text"
+                name="speciality"
+                value={form.speciality}
+                onChange={handleChange}
+                className="block w-full rounded-md border border-gray-300 shadow-sm px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                placeholder="e.g. Cardiologist, Nurse, Pharmacist"
+              />
             </div>
-          
-            <div className="mt-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-700">Working Schedule</h3>
-                <button
-                  type="button"
-                  onClick={addSchedule}
-                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  <PlusCircle className="w-4 h-4 mr-2" />
-                  Add Schedule
-                </button>
-              </div>
-              
-              {form.workingSchedules.map((schedule, index) => (
-                <div key={index} className="mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
-                  <div className="flex justify-between items-center mb-4">
-                    <h4 className="text-md font-medium text-gray-700">Schedule #{index + 1}</h4>
-                    {form.workingSchedules.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeSchedule(index)}
-                        className="text-red-500 hover:text-red-700 focus:outline-none"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    )}
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-2">Day</label>
-                      <select
-                        value={schedule.day}
-                        onChange={(e) => handleScheduleChange(index, 'day', e.target.value)}
-                        className="block w-full rounded-md border border-gray-300 shadow-sm px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                      >
-                        {days.map((day) => (
-                          <option key={day} value={day}>
-                            {day.charAt(0) + day.slice(1).toLowerCase()}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-2">Start Time</label>
-                      <input
-                        type="time"
-                        value={schedule.startTime}
-                        onChange={(e) => handleScheduleChange(index, 'startTime', e.target.value)}
-                        className="block w-full rounded-md border border-gray-300 shadow-sm px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-2">End Time</label>
-                      <input
-                        type="time"
-                        value={schedule.endTime}
-                        onChange={(e) => handleScheduleChange(index, 'endTime', e.target.value)}
-                        className="block w-full rounded-md border border-gray-300 shadow-sm px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
+  
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-2">Work Address</label>
+              <input
+                type="text"
+                name="workAddress"
+                value={form.workAddress}
+                onChange={handleChange}
+                className="block w-full rounded-md border border-gray-300 shadow-sm px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                placeholder="Hospital/Clinic Address"
+              />
             </div>
-          </>
+          </div>
         )}
   
         <div className="flex items-center justify-between pt-2">

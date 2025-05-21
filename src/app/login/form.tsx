@@ -4,14 +4,12 @@ import { useRouter } from 'next/navigation';
 import { AlertCircle } from 'lucide-react';
 import authApi from "@/api/authApi";
 
-// Tambahkan tipe response wrapper sesuai backend
 type BaseResponse<T> = {
   status: number;
   message: string;
-  createdAt: string;
+  timestamp: string;
   data: T;
 };
-
 
 type LoginResponse = {
   accessToken: string;
@@ -39,7 +37,7 @@ export default function LoginForm() {
     const errors = [];
     if (!form.email) {
       errors.push("Email wajib diisi.");
-    } else if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    } else if (!/^[^\s@]+@([^\s@.]+\.)+[^\s@.]+$/.test(form.email)) {
       errors.push("Format email tidak valid.");
     }
 
@@ -66,14 +64,13 @@ export default function LoginForm() {
           email: form.email,
           password: form.password
         }
-      }).json<BaseResponse<LoginResponse>>(); 
+      }).json<BaseResponse<LoginResponse>>();
       console.log('Full response wrapper:', responseWrapper);
-      const response = responseWrapper.data; 
-      console.log('Extracted response:', response); 
+      const response = responseWrapper.data;
+      console.log('Extracted response:', response);
 
       if (response?.accessToken) {
         localStorage.setItem('token', response.accessToken);
-        localStorage.setItem('userRole', response.role);
         if (response.role === 'PACILIAN') {
           router.push('/homepage/pacilian');
         } else if (response.role === 'CAREGIVER') {
