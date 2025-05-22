@@ -8,8 +8,16 @@ interface PacilianHomePageProps {
 export default function PacilianHomePage({ username }: PacilianHomePageProps) {
   const router = useRouter();
 
+  const handleFindDoctor = () => {
+    router.push('/doctors');
+  };
+
   const handleChatWithDoctor = () => {
     router.push('/chat/sessions');
+  };
+
+  const handleConsultationSchedule = () => {
+    router.push('/konsultasi');
   };
 
   return (
@@ -29,9 +37,14 @@ export default function PacilianHomePage({ username }: PacilianHomePageProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto mb-4">
-          <button className="flex items-center bg-white border border-blue-500 rounded-lg p-4 shadow-sm hover:shadow-md transition">
+          <button 
+            onClick={handleFindDoctor}
+            className="flex items-center bg-white border border-blue-500 rounded-lg p-4 shadow-sm hover:shadow-md transition"
+          >
             <div className="bg-gray-100 p-2 rounded-full mr-4">
-              {/* Icon can be added here */}
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </div>
             <span className="text-xl font-semibold">Cari Dokter Sekarang</span>
           </button>
@@ -50,7 +63,10 @@ export default function PacilianHomePage({ username }: PacilianHomePageProps) {
         </div>
 
         <div className="flex justify-center max-w-3xl mx-auto">
-          <button className="flex items-center bg-white border border-blue-500 rounded-lg p-4 shadow-sm hover:shadow-md transition w-full md:w-1/2">
+          <button 
+            onClick={handleConsultationSchedule}
+            className="flex items-center bg-white border border-blue-500 rounded-lg p-4 shadow-sm hover:shadow-md transition w-full md:w-1/2"
+          >
             <div className="bg-gray-100 p-2 rounded-full mr-4">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
