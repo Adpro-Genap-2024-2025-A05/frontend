@@ -20,6 +20,38 @@ export default function RegistrationForm() {
     workAddress: "",
   });
 
+  const SPECIALITIES = [
+    "Dokter Umum",
+    "Spesialis Anak",
+    "Spesialis Kulit",
+    "Spesialis Penyakit Dalam",
+    "Spesialis THT",
+    "Spesialis Kandungan",
+    "Kesehatan Paru",
+    "Psikiater",
+    "Dokter Hewan",
+    "Psikolog Klinis",
+    "Spesialis Mata",
+    "Seksologi & Spesialis Reproduksi Pria",
+    "Spesialis Gizi Klinik",
+    "Dokter Gigi",
+    "Spesialis Saraf",
+    "Spesialis Bedah",
+    "Perawatan Rambut",
+    "Bidanku",
+    "Spesialis Jantung",
+    "Talk Therapy Clinic",
+    "Dokter Konsulen",
+    "Laktasi",
+    "Program Hamil",
+    "Fisioterapi & Rehabilitasi",
+    "Medikolegal & Hukum Kesehatan",
+    "Pemeriksaan Lab",
+    "Layanan Kontrasepsi",
+    "Spesialisasi Lainnya"
+];
+
+
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -256,18 +288,23 @@ export default function RegistrationForm() {
         )}
   
         {form.role === "CAREGIVER" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2">Speciality</label>
-              <input
-                type="text"
-                name="speciality"
-                value={form.speciality}
-                onChange={handleChange}
-                className="block w-full rounded-md border border-gray-300 shadow-sm px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                placeholder="e.g. Cardiologist, Nurse, Pharmacist"
-              />
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-2">Speciality</label>
+            <select
+              name="speciality"
+              value={form.speciality}
+              onChange={handleChange}
+              className="block w-full rounded-md border border-gray-300 shadow-sm px-4 py-3 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+            >
+              <option value="">-- Select Speciality --</option>
+              {SPECIALITIES.map((spec) => (
+                <option key={spec} value={spec}>
+                  {spec}
+                </option>
+              ))}
+            </select>
+          </div>
   
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-2">Work Address</label>
