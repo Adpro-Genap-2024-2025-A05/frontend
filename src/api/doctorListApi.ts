@@ -1,5 +1,4 @@
 import { doctorListApi } from '@/middleware/apiMiddleware';
-import tokenService from '@/services/tokenService';
 
 interface ApiResponse<T> {
   status: number;
@@ -35,7 +34,10 @@ export interface Doctor {
 export interface DoctorSearchParams {
   name?: string;
   speciality?: string;
-  workingSchedule?: string;
+  workingSchedule?: string; // Deprecated: kept for backward compatibility
+  workingDay?: string;      // NEW: Day of the week (MONDAY, TUESDAY, etc.)
+  startTime?: string;       // NEW: Start time in HH:mm format
+  endTime?: string;         // NEW: End time in HH:mm format
   page?: number;
   size?: number;
 }
@@ -76,6 +78,10 @@ const doctorListService = {
       
       if (params.name) searchParams.append('name', params.name);
       if (params.speciality) searchParams.append('speciality', params.speciality);
+      if (params.workingDay) searchParams.append('workingDay', params.workingDay);
+      if (params.startTime) searchParams.append('startTime', params.startTime);
+      if (params.endTime) searchParams.append('endTime', params.endTime);
+      // Keep backward compatibility
       if (params.workingSchedule) searchParams.append('workingSchedule', params.workingSchedule);
       
       searchParams.append('page', (params.page || 0).toString());

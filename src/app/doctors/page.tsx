@@ -15,14 +15,26 @@ const SPECIALITIES = [
   'Spesialis Kandungan',
   'Kesehatan Paru',
   'Psikiater',
+  'Dokter Hewan',
   'Psikolog Klinis',
   'Spesialis Mata',
+  'Seksologi & Spesialis Reproduksi Pria',
   'Spesialis Gizi Klinik',
   'Dokter Gigi',
   'Spesialis Saraf',
   'Spesialis Bedah',
+  'Perawatan Rambut',
+  'Bidanku',
   'Spesialis Jantung',
-  'Fisioterapi & Rehabilitasi'
+  'Talk Therapy Clinic',
+  'Dokter Konsulen',
+  'Laktasi',
+  'Program Hamil',
+  'Fisioterapi & Rehabilitasi',
+  'Medikolegal & Hukum Kesehatan',
+  'Pemeriksaan Lab',
+  'Layanan Kontrasepsi',
+  'Spesialisasi Lainnya'
 ];
 
 const DAYS_OF_WEEK = [
@@ -37,7 +49,11 @@ const DAYS_OF_WEEK = [
 
 const TIME_SLOTS = Array.from({ length: 24 }, (_, i) => {
   const hour = i.toString().padStart(2, '0');
-  return `${hour}:00`;
+  const nextHour = ((i + 1) % 24).toString().padStart(2, '0');
+  return {
+    value: `${hour}:00`,
+    label: `${hour}:00 - ${nextHour}:00`
+  };
 });
 
 export default function DoctorsPage() {
@@ -70,19 +86,23 @@ export default function DoctorsPage() {
     }
   };
 
+  const getNextHour = (timeStr: string): string => {
+    const [hours] = timeStr.split(':').map(Number);
+    const nextHour = (hours + 1) % 24;
+    return `${nextHour.toString().padStart(2, '0')}:00`;
+  };
+
   useEffect(() => {
     fetchDoctors();
   }, []);
 
   const handleSearch = () => {
-    const workingSchedule = selectedDay && selectedTime ? 
-      `${selectedDay}` :
-      undefined;
-
     const newParams: DoctorSearchParams = {
       name: nameFilter || undefined,
       speciality: specialityFilter || undefined,
-      workingSchedule,
+      workingDay: selectedDay || undefined,
+      startTime: selectedTime || undefined,
+      endTime: selectedTime ? getNextHour(selectedTime) : undefined,
       page: 0,
       size: searchParams.size
     };
@@ -198,9 +218,9 @@ export default function DoctorsPage() {
                   disabled={!selectedDay}
                 >
                   <option value="">Pilih Waktu</option>
-                  {TIME_SLOTS.map(time => (
-                    <option key={time} value={time}>
-                      {time} - {TIME_SLOTS[TIME_SLOTS.indexOf(time) + 1] || '23:59'}
+                  {TIME_SLOTS.map(timeSlot => (
+                    <option key={timeSlot.value} value={timeSlot.value}>
+                      {timeSlot.label}
                     </option>
                   ))}
                 </select>
