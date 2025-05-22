@@ -78,8 +78,8 @@ export default function ChatSessionPage() {
             createdAt: msg.createdAt,
           }))
           .sort((a: ChatMessage, b: ChatMessage) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        );
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
 
         setAllMessages(formattedMessages);
         setVisibleMessages(formattedMessages.slice(-MESSAGES_PER_LOAD));
@@ -102,7 +102,7 @@ export default function ChatSessionPage() {
           messagesEndRef.current?.scrollIntoView();
         });
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
+        setError('');
       } finally {
         setLoading(false);
       }
@@ -208,7 +208,6 @@ export default function ChatSessionPage() {
       deleted: false,
     };
 
-    // Tambahkan pesan sementara
     setAllMessages(prev => [...prev, tempMessage]);
     setVisibleMessages(prev => [...prev, tempMessage]);
     setInput('');
@@ -243,18 +242,15 @@ export default function ChatSessionPage() {
           deleted: saved.deleted,
         };
 
-        // Ganti tempMessage dengan yang dari backend
         setAllMessages(prev => prev.map(m => m.id === tempId ? updated : m));
         setVisibleMessages(prev => prev.map(m => m.id === tempId ? updated : m));
       } catch {
-        // Hapus pesan sementara jika gagal
         setAllMessages(prev => prev.filter(m => m.id !== tempId));
         setVisibleMessages(prev => prev.filter(m => m.id !== tempId));
         alert('Gagal mengirim pesan. Silakan coba lagi.');
       }
     })();
   };
-
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -282,13 +278,8 @@ export default function ChatSessionPage() {
           <div className="flex justify-center p-12">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
           </div>
-        ) : error ? (
-          <div className="bg-red-50 text-red-500 p-4 rounded-lg mx-auto max-w-md">
-            <p>{error}</p>
-            <button className="mt-2 text-blue-500 hover:underline" onClick={() => window.location.reload()}>
-              Coba lagi
-            </button>
-          </div>
+        ) : allMessages.length === 0 ? (
+          <div className="text-center text-gray-400 mt-12">Belum ada pesan. Mulai percakapan!</div>
         ) : (
           <>
             <ChatMessageList
