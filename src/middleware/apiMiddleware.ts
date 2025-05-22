@@ -2,17 +2,29 @@ import ky from 'ky';
 import tokenService from '@/services/tokenService';
 
 const API_CONFIG = {
-  auth: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080',
-  konsultasi: process.env.NEXT_PUBLIC_KONSULTASI_BASE_URL || 'http://localhost:3001',
-  profile: process.env.NEXT_PUBLIC_PROFILE_BASE_URL || 'http://localhost:3002',
-  rating: process.env.NEXT_PUBLIC_RATING_BASE_URL || 'http://localhost:3003',
-  chat: process.env.NEXT_PUBLIC_CHAT_BASE_URL || 'http://localhost:3004',
+  baseUrls: {
+    auth: process.env.NEXT_PUBLIC_AUTH_BASE_URL || 'http://localhost:8080',
+    konsultasi: process.env.NEXT_PUBLIC_KONSULTASI_BASE_URL || 'http://localhost:8081',
+    profile: process.env.NEXT_PUBLIC_PROFILE_BASE_URL || 'http://localhost:8082',
+    rating: process.env.NEXT_PUBLIC_RATING_BASE_URL || 'http://localhost:8083',
+    chat: process.env.NEXT_PUBLIC_CHAT_BASE_URL || 'http://localhost:8084',
+  },
+  verifyEndpoint: 'auth/verify'
 };
 
-const createApiMiddleware = (baseUrl: string) => {
+export type ServiceType = 'auth' | 'konsultasi' | 'profile' | 'rating' | 'chat';
+
+export const getServiceBaseUrl = (serviceType: ServiceType): string => {
+  return API_CONFIG.baseUrls[serviceType];
+};
+
+export const createApiMiddleware = (baseUrl: string) => {
   return ky.create({
     prefixUrl: baseUrl,
     timeout: 30000,
+    headers: {
+      'Content-Type': 'application/json',
+    },
     hooks: {
       beforeRequest: [
         request => {
@@ -23,7 +35,7 @@ const createApiMiddleware = (baseUrl: string) => {
         }
       ],
       afterResponse: [
-        (_request, _options, response) => {
+        async (_request, _options, response) => {
           if (response.status === 401) {
             tokenService.clearAuth();
             
@@ -41,11 +53,30 @@ const createApiMiddleware = (baseUrl: string) => {
   });
 };
 
-export const authApi = createApiMiddleware(API_CONFIG.auth);
-export const konsultasiApi = createApiMiddleware(API_CONFIG.konsultasi);
-export const profileApi = createApiMiddleware(API_CONFIG.profile);
-export const ratingApi = createApiMiddleware(API_CONFIG.rating);
-export const chatApi = createApiMiddleware(API_CONFIG.chat);
+export const authApi = createApiMiddleware(API_CONFIG.baseUrls.auth);
+export const konsultasiApi = createApiMiddleware(API_CONFIG.baseUrls.konsultasi);
+export const profileApi = createApiMiddleware(API_CONFIG.baseUrls.profile);
+export const ratingApi = createApiMiddleware(API_CONFIG.baseUrls.rating);
+export const chatApi = createApiMiddleware(API_CONFIG.baseUrls.chat);
+
+export const verifyTokenForService = async (serviceType: ServiceType): Promise<boolean> => {
+  const token = tokenService.getToken();
+  if (!token) return false;
+  
+  try {
+    const api = serviceType === 'auth' ? authApi : 
+               serviceType === 'konsultasi' ? konsultasiApi :
+               serviceType === 'profile' ? profileApi :
+               serviceType === 'rating' ? ratingApi : chatApi;
+               
+    const response = await api.post(API_CONFIG.verifyEndpoint).json<{status: number, message: string, timestamp: string, data: {valid: boolean}}>();
+    
+    return response.data.valid === true;
+  } catch (error) {
+    console.error(`Token verification failed for ${serviceType}:`, error);
+    return false;
+  }
+};
 
 const api = {
   auth: authApi,
