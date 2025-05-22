@@ -1,5 +1,5 @@
 export { default as authApi } from './authApi'
 export { default as chatApi } from './chatApi'
 export { default as konsultasiApi } from './konsultasiApi'
-export { default as profileApi } from './profileApi'
+export { default as doctorListApi } from './doctorListApi'
 export { default as ratingApi } from './ratingApi'

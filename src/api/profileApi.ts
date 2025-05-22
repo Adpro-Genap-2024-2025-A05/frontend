@@ -1,4 +1,4 @@
-import { profileApi } from '@/middleware/apiMiddleware';
+import { doctorListApi } from '@/middleware/apiMiddleware';
 import tokenService from '@/services/tokenService';
 
 interface ApiResponse<T> {
@@ -8,13 +8,13 @@ interface ApiResponse<T> {
   data: T;
 }
 
-const profileService = {
-  getProfile: async () => {
+const doctorListService = {
+  getdoctorList: async () => {
     try {
-      const response = await profileApi.get('profile').json<ApiResponse<any>>();
+      const response = await doctorListApi.get('doctorList').json<ApiResponse<any>>();
       return response.data;
     } catch (error) {
-      console.error('Failed to fetch profile', error);
+      console.error('Failed to fetch doctorList', error);
       throw error;
     }
   },
@@ -22,4 +22,4 @@ const profileService = {
   // Kalo Butuh
 };
 
-export default profileService;
+export default doctorListService;
