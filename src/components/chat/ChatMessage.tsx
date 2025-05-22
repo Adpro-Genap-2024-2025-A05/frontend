@@ -76,20 +76,20 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
               <textarea
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
-                className="w-full p-2 border rounded text-gray-700 resize-none focus:outline-none focus:ring-2 focus:ring-blue-300"
+                className="w-full p-2 border rounded text-gray-100 resize-none focus:outline-none focus:ring-2 focus:ring-blue-300"
                 rows={2}
                 autoFocus
               />
               <div className="flex justify-end space-x-2 mt-2">
                 <button 
                   onClick={handleCancelEdit} 
-                  className="p-1 rounded-full hover:bg-gray-200 text-gray-600"
+                  className="p-1 rounded-full hover:bg-gray-700 text-gray-100"
                 >
                   <X size={16} />
                 </button>
                 <button 
                   onClick={handleSaveEdit} 
-                  className="p-1 rounded-full hover:bg-blue-200 text-blue-600"
+                  className="p-1 rounded-full hover:bg-gray-700 text-gray-100"
                 >
                   <Check size={16} />
                 </button>
