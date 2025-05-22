@@ -8,8 +8,8 @@ interface Message {
   content: string;
   createdAt: string;      
   editedAt?: string;
-  isEdited?: boolean;
-  isDeleted?: boolean;
+  edited?: boolean;
+  deleted?: boolean;
 }
 
 interface ChatMessageListProps {
@@ -38,8 +38,8 @@ export default function ChatMessageList({ messages, currentUserId, onEdit, onDel
           senderId={message.senderId}
           createdAt={message.createdAt}
           editedAt={message.editedAt}
-          isDeleted={message.isDeleted}
-          isEdited={message.isEdited}
+          deleted={message.deleted}
+          edited={message.edited}
           currentUserId={currentUserId}
           onEdit={onEdit}
           onDelete={onDelete}

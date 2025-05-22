@@ -73,8 +73,8 @@ export default function ChatSessionPage() {
         const formattedMessages: ChatMessage[] = data.messages
           .map((msg: any): ChatMessage => ({
             ...msg,
-            isEdited: msg.edited,
-            isDeleted: msg.deleted,
+            edited: msg.edited,
+            deleted: msg.deleted,
             createdAt: msg.createdAt,
           }))
           .sort((a: ChatMessage, b: ChatMessage) =>
@@ -144,21 +144,26 @@ export default function ChatSessionPage() {
 
       if (!res.ok) throw new Error('Gagal mengedit pesan');
 
-      const updated = await res.json();
-      const formatted = {
-        ...updated,
-        isEdited: updated.edited,
-        isDeleted: updated.deleted,
-        createdAt: updated.createdAt,
-        editedAt: updated.editedAt,
+      const saved = (await res.json()).data;
+
+      const updated: ChatMessage = {
+        id: saved.id,
+        content: saved.content,
+        senderId: saved.senderId,
+        sessionId: saved.session?.id || params.sessionId,
+        createdAt: saved.createdAt,
+        editedAt: saved.editedAt,
+        edited: saved.edited,
+        deleted: saved.deleted,
       };
 
-      setAllMessages(prev => prev.map(m => m.id === messageId ? formatted : m));
-      setVisibleMessages(prev => prev.map(m => m.id === messageId ? formatted : m));
+      setAllMessages(prev => prev.map(m => m.id === messageId ? updated : m));
+      setVisibleMessages(prev => prev.map(m => m.id === messageId ? updated : m));
     } catch {
       alert('Gagal mengedit pesan.');
     }
   };
+
 
   const handleDeleteMessage = async (messageId: string) => {
     const token = localStorage.getItem('token');
@@ -175,10 +180,10 @@ export default function ChatSessionPage() {
       if (!res.ok) throw new Error('Gagal menghapus pesan');
 
       setAllMessages(prev => prev.map(m => m.id === messageId
-        ? { ...m, isDeleted: true, content: 'Pesan telah dihapus' }
+        ? { ...m, deleted: true, content: 'Pesan telah dihapus' }
         : m));
       setVisibleMessages(prev => prev.map(m => m.id === messageId
-        ? { ...m, isDeleted: true, content: 'Pesan telah dihapus' }
+        ? { ...m, deleted: true, content: 'Pesan telah dihapus' }
         : m));
     } catch {
       alert('Gagal menghapus pesan.');
@@ -203,6 +208,7 @@ export default function ChatSessionPage() {
       deleted: false,
     };
 
+    // Tambahkan pesan sementara
     setAllMessages(prev => [...prev, tempMessage]);
     setVisibleMessages(prev => [...prev, tempMessage]);
     setInput('');
@@ -224,24 +230,31 @@ export default function ChatSessionPage() {
 
         if (!res.ok) throw new Error('Gagal mengirim pesan');
 
-        const saved = await res.json();
-        const updated = {
-          ...saved,
-          isEdited: saved.edited,
-          isDeleted: saved.deleted,
+        const saved = (await res.json()).data;
+
+        const updated: ChatMessage = {
+          id: saved.id,
+          content: saved.content,
+          senderId: saved.senderId,
+          sessionId: saved.session?.id || params.sessionId,
           createdAt: saved.createdAt,
           editedAt: saved.editedAt,
+          edited: saved.edited,
+          deleted: saved.deleted,
         };
 
+        // Ganti tempMessage dengan yang dari backend
         setAllMessages(prev => prev.map(m => m.id === tempId ? updated : m));
         setVisibleMessages(prev => prev.map(m => m.id === tempId ? updated : m));
       } catch {
+        // Hapus pesan sementara jika gagal
         setAllMessages(prev => prev.filter(m => m.id !== tempId));
         setVisibleMessages(prev => prev.filter(m => m.id !== tempId));
         alert('Gagal mengirim pesan. Silakan coba lagi.');
       }
     })();
   };
+
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">

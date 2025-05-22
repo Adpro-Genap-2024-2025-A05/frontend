@@ -8,8 +8,8 @@ interface ChatMessageProps {
   senderId: string;
   createdAt: string;
   editedAt?: string;
-  isDeleted?: boolean;
-  isEdited?: boolean;
+  deleted?: boolean;
+  edited?: boolean;
   currentUserId: string;
   onEdit?: (messageId: string, content: string) => void;
   onDelete?: (messageId: string) => void;
@@ -21,8 +21,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   senderId,
   createdAt,
   editedAt,
-  isDeleted = false,
-  isEdited = false,
+  deleted = false,
+  edited = false,
   currentUserId,
   onEdit,
   onDelete,
@@ -97,13 +97,13 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             </div>
           ) : (
             <>
-              <p className={isDeleted ? 'italic text-gray-400' : ''}>
-                {isDeleted ? 'Pesan telah dihapus' : content}
+              <p className={deleted ? 'italic text-gray-400' : ''}>
+                {deleted ? 'Pesan telah dihapus' : content}
               </p>
               
               <div className="flex justify-between items-center mt-1 text-xs">
                 <span className={isOwnMessage ? 'text-blue-100' : 'text-gray-500'}>
-                  {isEdited ? `(edited • ${editedTime})` : createdTime}
+                  {edited ? `(edited • ${editedTime})` : createdTime}
                 </span>
               </div>
             </>
@@ -111,7 +111,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         </ChatBubble>
 
         {/* Action menu for own messages that are not deleted */}
-        {isOwnMessage && !isDeleted && !isEditing && (
+        {isOwnMessage && !deleted && !isEditing && (
           <div className="flex justify-end mt-1 space-x-2">
             <button 
               onClick={handleStartEdit} 
