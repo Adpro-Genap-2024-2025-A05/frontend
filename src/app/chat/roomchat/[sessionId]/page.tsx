@@ -1,10 +1,12 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useRef, UIEvent } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import React, { useEffect, useRef, useState, UIEvent } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, User } from 'lucide-react';
 import ChatMessageList from '../components/ChatMessageList';
 import ChatInputBox from '../components/ChatInputBox';
+import { verifyTokenForService } from '@/middleware/apiMiddleware';
+import tokenService from '@/services/tokenService';
 
 interface ChatMessage {
   id: string;
@@ -28,6 +30,7 @@ const MESSAGES_PER_LOAD = 15;
 
 export default function ChatSessionPage() {
   const params = useParams<{ sessionId: string }>();
+  const router = useRouter();
   const [allMessages, setAllMessages] = useState<ChatMessage[]>([]);
   const [visibleMessages, setVisibleMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,11 +38,78 @@ export default function ChatSessionPage() {
   const [partnerInfo, setPartnerInfo] = useState<UserInfo | null>(null);
   const [currentUser, setCurrentUser] = useState<UserInfo | null>(null);
   const [input, setInput] = useState('');
-  const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef(0);
   const prevScrollHeightRef = useRef(0);
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      const isValid = await verifyTokenForService('chat');
+      if (!isValid) {
+        router.push('/login');
+        return;
+      }
+
+      const token = tokenService.getToken();
+      const user = tokenService.getUser();
+      if (!token || !user) {
+        router.push('/login');
+        return;
+      }
+
+      try {
+        setLoading(true);
+
+        const res = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/chat/session/${params.sessionId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) throw new Error('Gagal mengambil pesan chat');
+
+        const responseJson = await res.json();
+        const data = responseJson.data;
+
+        const formattedMessages: ChatMessage[] = data.messages
+          .map((msg: any): ChatMessage => ({
+            ...msg,
+            isEdited: msg.edited,
+            isDeleted: msg.deleted,
+            createdAt: msg.createdAt,
+          }))
+          .sort((a: ChatMessage, b: ChatMessage) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+
+        setAllMessages(formattedMessages);
+        setVisibleMessages(formattedMessages.slice(-MESSAGES_PER_LOAD));
+        offsetRef.current = MESSAGES_PER_LOAD;
+
+        const isCurrentUserPacilian = user.id === data.pacilian;
+        setCurrentUser({
+          id: user.id,
+          name: user.name,
+          role: isCurrentUserPacilian ? 'pacilian' : 'caregiver',
+        });
+
+        setPartnerInfo({
+          id: isCurrentUserPacilian ? data.caregiver : data.pacilian,
+          name: isCurrentUserPacilian ? data.caregiverName : data.pacilianName,
+          role: isCurrentUserPacilian ? 'caregiver' : 'pacilian',
+        });
+
+        requestAnimationFrame(() => {
+          messagesEndRef.current?.scrollIntoView();
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMessages();
+  }, [params.sessionId, router]);
 
   const loadMoreMessages = () => {
     const total = allMessages.length;
@@ -58,125 +128,6 @@ export default function ChatSessionPage() {
     }
   };
 
-  useEffect(() => {
-    if (containerRef.current && prevScrollHeightRef.current > 0) {
-      const container = containerRef.current;
-      const newScrollHeight = container.scrollHeight;
-      const scrollDiff = newScrollHeight - prevScrollHeightRef.current;
-      container.scrollTop = scrollDiff;
-      prevScrollHeightRef.current = 0;
-    }
-  }, [visibleMessages]);
-
-  useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem('token');
-        if (!token) return router.push('/login');
-
-        const res = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/chat/session/${params.sessionId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-
-        if (!res.ok) throw new Error('Gagal mengambil pesan chat');
-
-        const responseJson = await res.json();
-        const userId = JSON.parse(atob(token.split('.')[1])).id;
-
-        const formattedMessages: ChatMessage[] = responseJson.data
-        .map((msg: any): ChatMessage => ({
-          ...msg,
-          isEdited: msg.edited,
-          isDeleted: msg.deleted,
-          createdAt: msg.createdAt
-        }))
-        .sort((a: ChatMessage, b: ChatMessage) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        );
-
-        setAllMessages(formattedMessages);
-        const initialMessages = formattedMessages.slice(-MESSAGES_PER_LOAD);
-        setVisibleMessages(initialMessages);
-        offsetRef.current = MESSAGES_PER_LOAD;
-        setCurrentUser({ id: userId, name: '', role: 'pacilian' });
-
-        const otherSender = formattedMessages.find((msg: ChatMessage) => msg.senderId !== userId);
-        const partnerId = otherSender ? otherSender.senderId : 'unknown-partner';
-        setPartnerInfo({ id: partnerId, name: 'Partner', role: 'caregiver' });
-
-        // Scroll to bottom on initial load
-        requestAnimationFrame(() => {
-          messagesEndRef.current?.scrollIntoView();
-        });
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMessages();
-  }, [params.sessionId, router]);
-
-  const handleSendMessage = async () => {
-    if (!input.trim() || !currentUser) return;
-    const token = localStorage.getItem('token');
-    if (!token) return router.push('/login');
-
-    const tempId = `temp-${Date.now()}-${Math.random()}`;
-    const tempMessage: ChatMessage = {
-      id: tempId,
-      content: input,
-      senderId: currentUser.id,
-      sessionId: params.sessionId,
-      createdAt: new Date().toISOString(),
-      editedAt: '',
-      edited: false,
-      deleted: false
-    };
-
-    setAllMessages(prev => [...prev, tempMessage]);
-    setVisibleMessages(prev => [...prev, tempMessage]);
-    setInput('');
-
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/chat/send`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ content: tempMessage.content, sessionId: params.sessionId })
-      });
-
-      if (!res.ok) throw new Error('Gagal mengirim pesan');
-
-      const saved = await res.json();
-      const updated = {
-        ...saved,
-        isEdited: saved.edited,
-        isDeleted: saved.deleted,
-        createdAt: saved.createdAt,
-        editedAt: saved.editedAt
-      };
-
-      setAllMessages(prev => prev.map(m => m.id === tempId ? updated : m));
-      setVisibleMessages(prev => prev.map(m => m.id === tempId ? updated : m));
-
-      // Scroll to bottom after sending
-      requestAnimationFrame(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      });
-    } catch (err) {
-      setAllMessages(prev => prev.filter(m => m.id !== tempId));
-      setVisibleMessages(prev => prev.filter(m => m.id !== tempId));
-      alert('Gagal mengirim pesan. Silakan coba lagi.');
-    }
-  };
-
   const handleEditMessage = async (messageId: string, newContent: string) => {
     const token = localStorage.getItem('token');
     if (!token) return;
@@ -186,9 +137,9 @@ export default function ChatSessionPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ content: newContent })
+        body: JSON.stringify({ content: newContent }),
       });
 
       if (!res.ok) throw new Error('Gagal mengedit pesan');
@@ -199,12 +150,12 @@ export default function ChatSessionPage() {
         isEdited: updated.edited,
         isDeleted: updated.deleted,
         createdAt: updated.createdAt,
-        editedAt: updated.editedAt
+        editedAt: updated.editedAt,
       };
 
       setAllMessages(prev => prev.map(m => m.id === messageId ? formatted : m));
       setVisibleMessages(prev => prev.map(m => m.id === messageId ? formatted : m));
-    } catch (err) {
+    } catch {
       alert('Gagal mengedit pesan.');
     }
   };
@@ -217,17 +168,79 @@ export default function ChatSessionPage() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/chat/message/${messageId}`, {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!res.ok) throw new Error('Gagal menghapus pesan');
 
-      setAllMessages(prev => prev.map(m => m.id === messageId ? { ...m, isDeleted: true, content: 'Pesan telah dihapus' } : m));
-      setVisibleMessages(prev => prev.map(m => m.id === messageId ? { ...m, isDeleted: true, content: 'Pesan telah dihapus' } : m));
-    } catch (err) {
+      setAllMessages(prev => prev.map(m => m.id === messageId
+        ? { ...m, isDeleted: true, content: 'Pesan telah dihapus' }
+        : m));
+      setVisibleMessages(prev => prev.map(m => m.id === messageId
+        ? { ...m, isDeleted: true, content: 'Pesan telah dihapus' }
+        : m));
+    } catch {
       alert('Gagal menghapus pesan.');
     }
+  };
+
+  const handleSendMessage = () => {
+    if (!input.trim() || !currentUser) return;
+
+    const token = tokenService.getToken();
+    if (!token) return router.push('/login');
+
+    const tempId = `temp-${Date.now()}-${Math.random()}`;
+    const tempMessage: ChatMessage = {
+      id: tempId,
+      content: input,
+      senderId: currentUser.id,
+      sessionId: params.sessionId,
+      createdAt: new Date().toISOString(),
+      editedAt: '',
+      edited: false,
+      deleted: false,
+    };
+
+    setAllMessages(prev => [...prev, tempMessage]);
+    setVisibleMessages(prev => [...prev, tempMessage]);
+    setInput('');
+
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    });
+
+    (async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/chat/send`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ content: tempMessage.content, sessionId: params.sessionId }),
+        });
+
+        if (!res.ok) throw new Error('Gagal mengirim pesan');
+
+        const saved = await res.json();
+        const updated = {
+          ...saved,
+          isEdited: saved.edited,
+          isDeleted: saved.deleted,
+          createdAt: saved.createdAt,
+          editedAt: saved.editedAt,
+        };
+
+        setAllMessages(prev => prev.map(m => m.id === tempId ? updated : m));
+        setVisibleMessages(prev => prev.map(m => m.id === tempId ? updated : m));
+      } catch {
+        setAllMessages(prev => prev.filter(m => m.id !== tempId));
+        setVisibleMessages(prev => prev.filter(m => m.id !== tempId));
+        alert('Gagal mengirim pesan. Silakan coba lagi.');
+      }
+    })();
   };
 
   return (

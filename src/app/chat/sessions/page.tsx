@@ -1,9 +1,11 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import ChatSessionCard from './components/ChatSessionCard';
 import { Search } from 'lucide-react';
+import { verifyTokenForService } from '@/middleware/apiMiddleware';
+import tokenService from '@/services/tokenService';
 
 interface ChatMessage {
   content: string;
@@ -34,22 +36,27 @@ export default function ChatSessionsPage() {
 
   useEffect(() => {
     const fetchSessions = async () => {
+      const isValid = await verifyTokenForService('chat');
+      if (!isValid) {
+        router.push('/login');
+        return;
+      }
+
+      const token = tokenService.getToken();
+      const user = tokenService.getUser();
+
+      if (!token || !user) {
+        router.push('/login');
+        return;
+      }
+
       try {
         setLoading(true);
-
-        const token = localStorage.getItem('token');
-        const userRole = localStorage.getItem('userRole') as 'PACILIAN' | 'CAREGIVER' | null;
-
-        if (!token || !userRole) {
-          router.push('/login');
-          return;
-        }
-
         const response = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/chat/session/user`, {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });        
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         if (!response.ok) {
           throw new Error('Gagal mengambil data sesi chat');
@@ -57,33 +64,28 @@ export default function ChatSessionsPage() {
 
         const json = await response.json();
         const sessionData = json.data;
+        const isPacilian = user.role === 'PACILIAN';
 
-        const mapped = sessionData.map((session: any) => {
-          const isPacilian = userRole === 'PACILIAN';
-          const user2Id = isPacilian ? session.caregiver : session.pacilian;
-
-          return {
-            id: session.id,
-            user2: {
-              id: user2Id,
-              name: 'Pengguna', 
-              role: isPacilian ? 'caregiver' : 'pacilian',
-              avatar: null,
-            },
-            updatedAt: session.createdAt,
-            lastMessage: session.messages?.length
-              ? {
-                  content: session.messages[session.messages.length - 1].content,
-                  createdAt: session.messages[session.messages.length - 1].createdAt,
-                }
-              : undefined,
-          } as ChatSession;
-        });
+        const mapped = sessionData.map((session: any): ChatSession => ({
+          id: session.id,
+          user2: {
+            id: isPacilian ? session.caregiver : session.pacilian,
+            name: isPacilian ? session.caregiverName : session.pacilianName,
+            role: isPacilian ? 'caregiver' : 'pacilian',
+            avatar: null,
+          },
+          updatedAt: session.createdAt,
+          lastMessage: session.messages?.length
+            ? {
+                content: session.messages[session.messages.length - 1].content,
+                createdAt: session.messages[session.messages.length - 1].createdAt,
+              }
+            : undefined,
+        }));
 
         setSessions(mapped);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
-        console.error('Error fetching chat sessions:', err);
       } finally {
         setLoading(false);
       }
@@ -92,17 +94,18 @@ export default function ChatSessionsPage() {
     fetchSessions();
   }, [router]);
 
-  const filteredSessions = sessions.filter(session =>
+  const filteredSessions = sessions.filter((session) =>
     session.user2.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSessionClick = (sessionId: string) => {
     router.push(`/chat/roomchat/${sessionId}`);
-  };  
+  };
 
   return (
     <div className="container mx-auto max-w-3xl p-4">
       <h1 className="text-2xl font-bold mb-6">Riwayat Chat</h1>
+
       {loading ? (
         <div className="flex justify-center p-12">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
