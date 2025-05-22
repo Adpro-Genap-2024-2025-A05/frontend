@@ -34,7 +34,7 @@ export default function Navbar() {
           <div className="flex items-center space-x-4">
             {/* Account Button */}
             <Link
-              href="/account"
+              href="/profile"
               className="flex items-center bg-white border border-blue-100 rounded-lg px-4 py-2 shadow-sm hover:shadow-md transition"
             >
               <div className="h-8 w-8 bg-blue-100 rounded-full mr-2 flex items-center justify-center">
