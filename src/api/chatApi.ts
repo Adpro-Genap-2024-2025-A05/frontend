@@ -1,13 +1,25 @@
-import ky from 'ky'
+import { chatApi } from '@/middleware/apiMiddleware';
+import tokenService from '@/services/tokenService';
 
-const CHAT_BASE_URL =
-  process.env.NEXT_PUBLIC_CHAT_BASE_URL ?? 'http://localhost:3001'
+interface ApiResponse<T> {
+  status: number;
+  message: string;
+  timestamp: string;
+  data: T;
+}
 
-const chatApi = ky.create({
-  prefixUrl: CHAT_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
+const chatService = {
+  getChats: async () => {
+    try {
+      const response = await chatApi.get('chats').json<ApiResponse<any>>();
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch chats', error);
+      throw error;
+    }
   },
-})
+  
+  // Related Function Kalo Butuh
+};
 
-export default chatApi
+export default chatService;

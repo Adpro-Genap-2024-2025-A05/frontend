@@ -1,29 +1,14 @@
-import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import "./globals.css";
 
-
-const poppins = Poppins({
-  weight: "400",
-  subsets: ["latin"],
-});
-
-export const metadata: Metadata = {
-  title: "Adpro",
-  description: "Init FE",
-};
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body
-        className={`${poppins} antialiased`}
-      >
-        {children}
+      <body className="flex flex-col min-h-screen">
+        <Navbar />
+        <main className="flex-grow">{children}</main>
+        <Footer />
       </body>
     </html>
   );
