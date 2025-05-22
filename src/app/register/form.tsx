@@ -4,6 +4,37 @@ import { useRouter } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import authService from "@/api/authApi";
 
+export enum Speciality {
+  DOKTER_UMUM = "Dokter Umum",
+  SPESIALIS_ANAK = "Spesialis Anak",
+  SPESIALIS_KULIT = "Spesialis Kulit",
+  SPESIALIS_PENYAKIT_DALAM = "Spesialis Penyakit Dalam",
+  SPESIALIS_THT = "Spesialis THT",
+  SPESIALIS_KANDUNGAN = "Spesialis Kandungan",
+  KESEHATAN_PARU = "Kesehatan Paru",
+  PSIKIATER = "Psikiater",
+  DOKTER_HEWAN = "Dokter Hewan",
+  PSIKOLOG_KLINIS = "Psikolog Klinis",
+  SPESIALIS_MATA = "Spesialis Mata",
+  SEKSOLOGI_REPRODUKSI_PRIA = "Seksologi & Spesialis Reproduksi Pria",
+  SPESIALIS_GIZI_KLINIK = "Spesialis Gizi Klinik",
+  DOKTER_GIGI = "Dokter Gigi",
+  SPESIALIS_SARAF = "Spesialis Saraf",
+  SPESIALIS_BEDAH = "Spesialis Bedah",
+  PERAWATAN_RAMBUT = "Perawatan Rambut",
+  BIDANKU = "Bidanku",
+  SPESIALIS_JANTUNG = "Spesialis Jantung",
+  TALK_THERAPY_CLINIC = "Talk Therapy Clinic",
+  DOKTER_KONSULEN = "Dokter Konsulen",
+  LAKTASI = "Laktasi",
+  PROGRAM_HAMIL = "Program Hamil",
+  FISIOTERAPI_REHABILITASI = "Fisioterapi & Rehabilitasi",
+  MEDIKOLEGAL_HUKUM_KESEHATAN = "Medikolegal & Hukum Kesehatan",
+  PEMERIKSAAN_LAB = "Pemeriksaan Lab",
+  LAYANAN_KONTRASEPSI = "Layanan Kontrasepsi",
+  SPESIALISASI_LAINNYA = "Spesialisasi Lainnya"
+}
+
 export default function RegistrationForm() {
   const router = useRouter();
 
@@ -16,7 +47,7 @@ export default function RegistrationForm() {
     phoneNumber: "",
     role: "PACILIAN", 
     medicalHistory: "",
-    speciality: "",
+    speciality: "" as keyof typeof Speciality | "",
     workAddress: "",
   });
 
@@ -58,7 +89,7 @@ export default function RegistrationForm() {
         errors.push("Riwayat medis wajib diisi.");
       }
     } else if (form.role === "CAREGIVER") {
-      if (!form.speciality.trim()) {
+      if (!form.speciality) {
         errors.push("Spesialisasi wajib diisi.");
       }
       if (!form.workAddress.trim()) {
@@ -102,7 +133,7 @@ export default function RegistrationForm() {
         nik: form.nik,
         address: form.address,
         phoneNumber: form.phoneNumber,
-        speciality: form.speciality,
+        speciality: form.speciality ? Speciality[form.speciality as keyof typeof Speciality] : "",
         workAddress: form.workAddress
       };      
     }
@@ -259,14 +290,19 @@ export default function RegistrationForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-2">Speciality</label>
-              <input
-                type="text"
+              <select
                 name="speciality"
                 value={form.speciality}
                 onChange={handleChange}
                 className="block w-full rounded-md border border-gray-300 shadow-sm px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                placeholder="e.g. Cardiologist, Nurse, Pharmacist"
-              />
+              >
+                <option value="">Select a speciality</option>
+                {Object.entries(Speciality).map(([key, value]) => (
+                  <option key={key} value={key}>
+                    {value}
+                  </option>
+                ))}
+              </select>
             </div>
   
             <div>
