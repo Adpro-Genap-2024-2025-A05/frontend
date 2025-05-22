@@ -1,6 +1,4 @@
-// api/konsultasiApi.ts
 import { konsultasiApi } from '@/middleware/apiMiddleware';
-import tokenService from '@/services/tokenService';
 
 interface ApiResponse<T> {
   status: number;
@@ -31,17 +29,7 @@ interface Schedule {
   oneTime: boolean;
 }
 
-const konsultasiService = {
-  getKonsultasi: async () => {
-    try {
-      const response = await konsultasiApi.get('konsultasi').json<ApiResponse<any>>();
-      return response.data;
-    } catch (error) {
-      console.error('Failed to fetch konsultasi data', error);
-      throw error;
-    }
-  },
-
+export const scheduleApi = {
   createSchedule: async (scheduleData: CreateScheduleDto): Promise<Schedule> => {
     try {
       const response = await konsultasiApi.post('schedule/caregiver', {
@@ -124,5 +112,3 @@ const konsultasiService = {
     }
   }
 };
-
-export default konsultasiService;
