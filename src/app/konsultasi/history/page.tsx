@@ -169,7 +169,7 @@ export default function KonsultasiHistoryPage() {
   const stats = getStatusStats();
 
   return (
-    <ProtectedRoute allowedRoles={['PACILIAN, CAREGIVER']} requiredService="konsultasi">
+    <ProtectedRoute allowedRoles={['PACILIAN', 'CAREGIVER']} requiredService="konsultasi">
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">
