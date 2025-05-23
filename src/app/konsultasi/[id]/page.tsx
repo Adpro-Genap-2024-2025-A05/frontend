@@ -45,7 +45,7 @@ export default function KonsultasiDetailPage() {
     setError(null);
     
     try {
-      const data = await konsultasiService.getKonsultasiById(konsultasiId);
+      const data = await konsultasiService.getKonsultasiById(konsultasiId, user?.role || '');
       setKonsultasi(data);
     } catch (err: any) {
       console.error('Error fetching konsultasi detail:', err);
