@@ -78,8 +78,8 @@ export default function DoctorDetailPage() {
     }
   };
 
-  const handleBookConsultation = () => {
-    router.push('/konsultasi');
+  const handleBookConsultation = () => {  
+    router.push('/konsultasi/create');
   };
 
   const formatScheduleTime = (schedule: any) => {

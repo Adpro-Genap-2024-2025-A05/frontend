@@ -64,6 +64,16 @@ export default function Navbar() {
             >
               Konsultasi
             </Link>
+            <Link
+              href="/rating"
+              className={`text-sm font-medium transition ${
+                pathname === "/rating" || pathname.startsWith("/rating/")
+                  ? "text-blue-600 border-b-2 border-blue-600 pb-1"
+                  : "text-gray-700 hover:text-blue-600"
+              }`}
+            >
+              Rating
+            </Link>
           </div>
         )}
 
@@ -99,6 +109,16 @@ export default function Navbar() {
               }`}
             >
               Konsultasi
+            </Link>
+            <Link
+              href="/rating"
+              className={`text-sm font-medium transition ${
+                pathname === "/rating" || pathname.startsWith("/rating/")
+                  ? "text-blue-600 border-b-2 border-blue-600 pb-1"
+                  : "text-gray-700 hover:text-blue-600"
+              }`}
+            >
+              Rating
             </Link>
           </div>
         )}
