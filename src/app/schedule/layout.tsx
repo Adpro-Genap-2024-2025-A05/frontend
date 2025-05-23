@@ -1,5 +1,3 @@
-import NavbarWithSchedule from "@/components/NavbarWithSchedule";
-
 export default function ScheduleLayout({
   children,
 }: {
@@ -7,7 +5,6 @@ export default function ScheduleLayout({
 }) {
   return (
     <>
-      <NavbarWithSchedule />
       <main className="min-h-screen bg-gray-50">{children}</main>
     </>
   );
