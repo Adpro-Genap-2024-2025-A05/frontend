@@ -39,7 +39,7 @@ export default function RescheduleKonsultasiPage() {
     setError(null);
     
     try {
-      const data = await konsultasiService.getKonsultasiById(konsultasiId);
+      const data = await konsultasiService.getKonsultasiById(konsultasiId, user?.role || '');
       setKonsultasi(data);
       
       const scheduleData = await konsultasiService.getCaregiverSchedulesById(data.caregiverId);

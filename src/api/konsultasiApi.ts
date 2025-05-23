@@ -149,7 +149,7 @@ const konsultasiService = {
     }
   },
 
-  getKonsultasiById: async (konsultasiId: string): Promise<KonsultasiResponse> => {
+  getKonsultasiById: async (konsultasiId: string, role: string): Promise<KonsultasiResponse> => {
     try {
       const response = await konsultasiApi.get(`konsultasi/${konsultasiId}`)
         .json<ApiResponse<KonsultasiResponse>>();
