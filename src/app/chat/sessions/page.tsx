@@ -52,7 +52,7 @@ export default function ChatSessionsPage() {
 
       try {
         setLoading(true);
-        const response = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/chat/session/user`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/api/chat/session/user`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

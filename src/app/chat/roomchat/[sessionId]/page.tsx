@@ -61,7 +61,7 @@ export default function ChatSessionPage() {
       try {
         setLoading(true);
 
-        const res = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/chat/session/${params.sessionId}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/api/chat/session/${params.sessionId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -133,7 +133,7 @@ export default function ChatSessionPage() {
     if (!token) return;
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/chat/message/${messageId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/api/chat/message/${messageId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -169,7 +169,7 @@ export default function ChatSessionPage() {
     if (!token) return;
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/chat/message/${messageId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/api/chat/message/${messageId}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -217,7 +217,7 @@ export default function ChatSessionPage() {
 
     (async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/chat/send`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/api/chat/send`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
