@@ -1,4 +1,4 @@
-import { konsultasiApi } from '@/middleware/apiMiddleware';
+import { konsultasiApi as api } from '@/middleware/apiMiddleware';
 import tokenService from '@/services/tokenService';
 
 interface ApiResponse<T> {
@@ -38,6 +38,14 @@ export interface RescheduleKonsultasiDto {
   notes?: string;
 }
 
+interface TokenVerificationResponse {
+  valid: boolean;
+  userId?: string;
+  email?: string;
+  role?: string;
+  expiresIn?: number;
+}
+
 export interface KonsultasiResponse {
   id: string;
   scheduleId: string;
@@ -65,7 +73,7 @@ export interface Schedule {
 const konsultasiService = {
   createKonsultasi: async (data: CreateKonsultasiDto): Promise<KonsultasiResponse> => {
     try {
-      const response = await konsultasiApi.post('konsultasi', {
+      const response = await api.post('konsultasi', {
         json: data
       }).json<ApiResponse<KonsultasiResponse>>();
       
@@ -78,7 +86,7 @@ const konsultasiService = {
 
   confirmKonsultasi: async (konsultasiId: string): Promise<KonsultasiResponse> => {
     try {
-      const response = await konsultasiApi.post(`konsultasi/${konsultasiId}/confirm`, {})
+      const response = await api.post(`konsultasi/${konsultasiId}/confirm`, {})
         .json<ApiResponse<KonsultasiResponse>>();
       
       return response.data;
@@ -90,7 +98,7 @@ const konsultasiService = {
 
   cancelKonsultasi: async (konsultasiId: string): Promise<KonsultasiResponse> => {
     try {
-      const response = await konsultasiApi.post(`konsultasi/${konsultasiId}/cancel`, {})
+      const response = await api.post(`konsultasi/${konsultasiId}/cancel`, {})
         .json<ApiResponse<KonsultasiResponse>>();
       
       return response.data;
@@ -102,7 +110,7 @@ const konsultasiService = {
 
   completeKonsultasi: async (konsultasiId: string): Promise<KonsultasiResponse> => {
     try {
-      const response = await konsultasiApi.post(`konsultasi/${konsultasiId}/complete`, {})
+      const response = await api.post(`konsultasi/${konsultasiId}/complete`, {})
         .json<ApiResponse<KonsultasiResponse>>();
       
       return response.data;
@@ -114,7 +122,7 @@ const konsultasiService = {
 
   rescheduleKonsultasi: async (konsultasiId: string, data: RescheduleKonsultasiDto): Promise<KonsultasiResponse> => {
     try {
-      const response = await konsultasiApi.post(`konsultasi/${konsultasiId}/reschedule`, {
+      const response = await api.post(`konsultasi/${konsultasiId}/reschedule`, {
         json: data
       }).json<ApiResponse<KonsultasiResponse>>();
       
@@ -127,7 +135,7 @@ const konsultasiService = {
 
   acceptReschedule: async (konsultasiId: string): Promise<KonsultasiResponse> => {
     try {
-      const response = await konsultasiApi.post(`konsultasi/${konsultasiId}/accept-reschedule`, {})
+      const response = await api.post(`konsultasi/${konsultasiId}/accept-reschedule`, {})
         .json<ApiResponse<KonsultasiResponse>>();
       
       return response.data;
@@ -139,7 +147,7 @@ const konsultasiService = {
 
   rejectReschedule: async (konsultasiId: string): Promise<KonsultasiResponse> => {
     try {
-      const response = await konsultasiApi.post(`konsultasi/${konsultasiId}/reject-reschedule`, {})
+      const response = await api.post(`konsultasi/${konsultasiId}/reject-reschedule`, {})
         .json<ApiResponse<KonsultasiResponse>>();
       
       return response.data;
@@ -151,7 +159,7 @@ const konsultasiService = {
 
   getKonsultasiById: async (konsultasiId: string, role: string): Promise<KonsultasiResponse> => {
     try {
-      const response = await konsultasiApi.get(`konsultasi/${konsultasiId}`)
+      const response = await api.get(`konsultasi/${konsultasiId}`)
         .json<ApiResponse<KonsultasiResponse>>();
       
       return response.data;
@@ -163,7 +171,7 @@ const konsultasiService = {
 
   getPacilianKonsultasi: async (): Promise<KonsultasiResponse[]> => {
     try {
-      const response = await konsultasiApi.get('konsultasi/pacilian')
+      const response = await api.get('konsultasi/pacilian')
         .json<ApiResponse<KonsultasiResponse[]>>();
       
       return response.data;
@@ -175,7 +183,7 @@ const konsultasiService = {
 
   getCaregiverKonsultasi: async (): Promise<KonsultasiResponse[]> => {
     try {
-      const response = await konsultasiApi.get('konsultasi/caregiver')
+      const response = await api.get('konsultasi/caregiver')
         .json<ApiResponse<KonsultasiResponse[]>>();
       
       return response.data;
@@ -187,7 +195,7 @@ const konsultasiService = {
 
   getRequestedKonsultasi: async (): Promise<KonsultasiResponse[]> => {
     try {
-      const response = await konsultasiApi.get('konsultasi/caregiver/requested')
+      const response = await api.get('konsultasi/caregiver/requested')
         .json<ApiResponse<KonsultasiResponse[]>>();
       
       return response.data;
@@ -199,7 +207,7 @@ const konsultasiService = {
 
   createSchedule: async (scheduleData: any): Promise<Schedule> => {
     try {
-      const response = await konsultasiApi.post('schedule/caregiver', {
+      const response = await api.post('schedule/caregiver', {
         json: scheduleData
       }).json<ApiResponse<Schedule>>();
       
@@ -212,7 +220,7 @@ const konsultasiService = {
   
   createOneTimeSchedule: async (scheduleData: any): Promise<Schedule> => {
     try {
-      const response = await konsultasiApi.post('schedule/caregiver/one-time', {
+      const response = await api.post('schedule/caregiver/one-time', {
         json: scheduleData
       }).json<ApiResponse<Schedule>>();
       
@@ -225,7 +233,7 @@ const konsultasiService = {
   
   getCaregiverSchedules: async (): Promise<Schedule[]> => {
     try {
-      const response = await konsultasiApi.get('schedule/caregiver').json<ApiResponse<Schedule[]>>();
+      const response = await api.get('schedule/caregiver').json<ApiResponse<Schedule[]>>();
       return response.data;
     } catch (error) {
       console.error('Failed to get caregiver schedules', error);
@@ -235,7 +243,7 @@ const konsultasiService = {
 
   getCaregiverSchedulesById: async (caregiverId: string): Promise<Schedule[]> => {
     try {
-      const response = await konsultasiApi.get(`schedule/caregiver/${caregiverId}`)
+      const response = await api.get(`schedule/caregiver/${caregiverId}`)
         .json<ApiResponse<Schedule[]>>();
       return response.data;
     } catch (error) {
@@ -246,7 +254,7 @@ const konsultasiService = {
   
   deleteSchedule: async (scheduleId: string): Promise<void> => {
     try {
-      await konsultasiApi.delete(`schedule/caregiver/${scheduleId}`).json<ApiResponse<null>>();
+      await api.delete(`schedule/caregiver/${scheduleId}`).json<ApiResponse<null>>();
     } catch (error) {
       console.error('Failed to delete schedule', error);
       throw error;
@@ -255,7 +263,7 @@ const konsultasiService = {
   
   updateSchedule: async (scheduleId: string, scheduleData: any): Promise<Schedule> => {
     try {
-      const response = await konsultasiApi.put(`schedule/caregiver/${scheduleId}`, {
+      const response = await api.put(`schedule/caregiver/${scheduleId}`, {
         json: scheduleData
       }).json<ApiResponse<Schedule>>();
       
@@ -268,7 +276,7 @@ const konsultasiService = {
   
   getAvailableTimes: async (scheduleId: string, weeksAhead: number = 4): Promise<string[]> => {
     try {
-      const response = await konsultasiApi.get(`schedule/${scheduleId}/available?weeksAhead=${weeksAhead}`)
+      const response = await api.get(`schedule/${scheduleId}/available?weeksAhead=${weeksAhead}`)
         .json<ApiResponse<string[]>>();
       
       return response.data;
@@ -280,7 +288,7 @@ const konsultasiService = {
   
   checkAvailability: async (scheduleId: string, dateTime: string): Promise<boolean> => {
     try {
-      const response = await konsultasiApi.get(`schedule/${scheduleId}/check-availability?dateTime=${dateTime}`)
+      const response = await api.get(`schedule/${scheduleId}/check-availability?dateTime=${dateTime}`)
         .json<ApiResponse<boolean>>();
       
       return response.data;
@@ -288,7 +296,34 @@ const konsultasiService = {
       console.error('Failed to check availability', error);
       throw error;
     }
-  }
+  },
+
+  verifyToken: async () => {
+    try {
+      const token = tokenService.getToken();
+      
+      if (!token) {
+        return { valid: false };
+      }
+      
+      if (tokenService.isTokenExpired()) {
+        tokenService.clearAuth();
+        return { valid: false };
+      }
+      
+      const response = await api.post('auth/verify').json<ApiResponse<TokenVerificationResponse>>();
+      
+      if (!response.data.valid) {
+        tokenService.clearAuth();
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Token verification failed', error);
+      tokenService.clearAuth();
+      return { valid: false };
+    }
+  },
 };
 
 export default konsultasiService;
