@@ -19,7 +19,6 @@ export default function useAuth() {
 
   useEffect(() => {
     const initAuth = async () => {
-      // Only check token expiration and get user from token - no API call
       if (tokenService.isTokenExpired()) {
         tokenService.clearAuth();
         setUser(null);
