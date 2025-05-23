@@ -338,8 +338,8 @@ export default function KonsultasiPage() {
                     onReschedule={handleReschedule}
                     onAcceptReschedule={handleAcceptReschedule}
                     onRejectReschedule={handleRejectReschedule}
-                    caregiverName="Dr. [Nama akan diambil dari API]"
-                    pacilianName="[Nama Pasien akan diambil dari API]"
+                    caregiverName={konsultasi.caregiverData?.name || 'Dr. [Data tidak tersedia]'}
+                    pacilianName={konsultasi.pacilianData?.name || '[Nama tidak tersedia]'}
                   />
                 ))}
               </div>
