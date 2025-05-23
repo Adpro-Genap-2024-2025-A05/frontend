@@ -8,24 +8,6 @@ interface ApiResponse<T> {
   data: T;
 }
 
-export interface CaregiverPublicDto {
-  id: string;
-  name: string;
-  email: string;
-  speciality: string;
-  workAddress: string;
-  phoneNumber: string;
-}
-
-export interface PacilianPublicDto {
-  id: string;
-  name: string;
-  email: string;
-  address: string;
-  phoneNumber: string;
-  medicalHistory?: string;
-}
-
 export interface CreateKonsultasiDto {
   scheduleId: string;
   scheduleDateTime: string;
@@ -47,9 +29,6 @@ export interface KonsultasiResponse {
   notes?: string;
   status: 'REQUESTED' | 'CONFIRMED' | 'CANCELLED' | 'DONE' | 'RESCHEDULED';
   lastUpdated: string;
-
-  caregiverData?: CaregiverPublicDto;
-  pacilianData?: PacilianPublicDto;
 }
 
 export interface Schedule {
