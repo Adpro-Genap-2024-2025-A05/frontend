@@ -181,9 +181,6 @@ export default function KonsultasiDetailPage() {
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
                   Detail Konsultasi
                 </h1>
-                <p className="text-gray-600">
-                  ID: {konsultasi.id}
-                </p>
               </div>
               <KonsultasiStatusBadge status={konsultasi.status} />
             </div>
@@ -213,8 +210,8 @@ export default function KonsultasiDetailPage() {
                       </p>
                       <p className="text-gray-600">
                         {user?.role === 'PACILIAN' 
-                          ? 'Dr. [Nama Dokter akan diambil dari API]'
-                          : '[Nama Pasien akan diambil dari API]'
+                          ? (konsultasi.caregiverData?.name || 'Dr. [Data tidak tersedia]')
+                          : (konsultasi.pacilianData?.name || '[Nama tidak tersedia]')
                         }
                       </p>
                     </div>
@@ -286,7 +283,12 @@ export default function KonsultasiDetailPage() {
                     <Phone className="w-5 h-5 text-gray-400 mr-3" />
                     <div>
                       <p className="font-medium text-gray-900">Nomor Telepon</p>
-                      <p className="text-gray-600">[Akan diambil dari API]</p>
+                      <p className="text-gray-600">
+                        {user?.role === 'PACILIAN' 
+                          ? (konsultasi.caregiverData?.phoneNumber || '[Telepon tidak tersedia]')
+                          : (konsultasi.pacilianData?.phoneNumber || '[Telepon tidak tersedia]')
+                        }
+                      </p>
                     </div>
                   </div>
 
@@ -294,7 +296,12 @@ export default function KonsultasiDetailPage() {
                     <Mail className="w-5 h-5 text-gray-400 mr-3" />
                     <div>
                       <p className="font-medium text-gray-900">Email</p>
-                      <p className="text-gray-600">[Akan diambil dari API]</p>
+                      <p className="text-gray-600">
+                        {user?.role === 'PACILIAN' 
+                          ? (konsultasi.caregiverData?.email || '[Email tidak tersedia]')
+                          : (konsultasi.pacilianData?.email || '[Email tidak tersedia]')
+                        }
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -372,24 +379,6 @@ export default function KonsultasiDetailPage() {
                       {actionLoading === 'cancel' ? 'Membatalkan...' : 'Batalkan'}
                     </button>
                   )}
-                </div>
-
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <h4 className="font-medium text-gray-900 mb-3">Informasi Cepat</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">ID:</span>
-                      <span className="font-mono text-xs">{konsultasi.id.slice(-8)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Schedule ID:</span>
-                      <span className="font-mono text-xs">{konsultasi.scheduleId.slice(-8)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Dibuat:</span>
-                      <span>{format(new Date(konsultasi.lastUpdated), 'dd/MM/yyyy')}</span>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
