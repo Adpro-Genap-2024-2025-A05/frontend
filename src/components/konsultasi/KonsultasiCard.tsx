@@ -71,7 +71,9 @@ export default function KonsultasiCard({
           <div className="flex-1">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-lg font-semibold text-gray-900">
-                Konsultasi {caregiverName}
+                Konsultasi {userRole === 'CAREGIVER' 
+                  ? pacilianName 
+                  : caregiverName}
               </h3>
               <div className="relative">
                 <button

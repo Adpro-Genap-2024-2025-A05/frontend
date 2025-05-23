@@ -374,7 +374,9 @@ export default function KonsultasiHistoryPage() {
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-2">
                             <h3 className="text-lg font-semibold text-gray-900">
-                              Konsultasi {konsultasi.caregiverData?.name}
+                              Konsultasi {user?.role === 'CAREGIVER' 
+                                ? konsultasi.pacilianData?.name 
+                                : konsultasi.caregiverData?.name}
                             </h3>
                             <KonsultasiStatusBadge status={konsultasi.status} />
                           </div>
@@ -390,7 +392,10 @@ export default function KonsultasiHistoryPage() {
                         <div className="flex items-center text-sm text-gray-600">
                           <User className="w-4 h-4 mr-2 flex-shrink-0" />
                           <span>
-                            Dokter: {konsultasi.caregiverData?.name || 'Dr. [Data tidak tersedia]'}
+                            {user?.role === 'PACILIAN'
+                              ? `Dokter: ${konsultasi.caregiverData?.name || 'Dr. [Data tidak tersedia]'}`
+                              : `Pasien: ${konsultasi.pacilianData?.name || 'Pasien [Data tidak tersedia]'}`
+                            }
                           </span>
                         </div>
                       </div>

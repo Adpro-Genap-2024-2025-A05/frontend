@@ -185,7 +185,9 @@ export default function KonsultasiDetailPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  Konsultasi {konsultasi.caregiverData?.name || 'Detail Konsultasi'}
+                  Konsultasi {user?.role === 'CAREGIVER'
+                    ? (konsultasi.pacilianData?.name || 'Detail Konsultasi')
+                    : (konsultasi.caregiverData?.name || 'Detail Konsultasi')}
                 </h1>
               </div>
               <KonsultasiStatusBadge status={konsultasi.status} />
