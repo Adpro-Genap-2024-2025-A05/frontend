@@ -49,9 +49,10 @@ const DAYS_OF_WEEK = [
 
 const TIME_SLOTS = Array.from({ length: 24 }, (_, i) => {
   const hour = i.toString().padStart(2, '0');
+  const nextHour = ((i + 1) % 24).toString().padStart(2, '0');
   return {
     value: `${hour}:00`,
-    label: `${hour}:00`
+    label: `${hour}:00 - ${nextHour}:00`
   };
 });
 
@@ -86,9 +87,9 @@ export default function DoctorsPage() {
   };
 
   const getNextHour = (timeStr: string): string => {
-    const [hours, minutes] = timeStr.split(':').map(Number);
+    const [hours] = timeStr.split(':').map(Number);
     const nextHour = (hours + 1) % 24;
-    return `${nextHour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    return `${nextHour.toString().padStart(2, '0')}:00`;
   };
 
   useEffect(() => {
@@ -101,6 +102,7 @@ export default function DoctorsPage() {
       speciality: specialityFilter || undefined,
       workingDay: selectedDay || undefined,
       startTime: selectedTime || undefined,
+      endTime: selectedTime ? getNextHour(selectedTime) : undefined,
       page: 0,
       size: searchParams.size
     };
