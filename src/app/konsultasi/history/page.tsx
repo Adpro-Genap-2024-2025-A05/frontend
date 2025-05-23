@@ -54,7 +54,7 @@ export default function KonsultasiHistoryPage() {
   ];
 
   useEffect(() => {
-    if (user?.role === 'PACILIAN') {
+    if (user) {
       fetchKonsultasiHistory();
     }
   }, [user]);
