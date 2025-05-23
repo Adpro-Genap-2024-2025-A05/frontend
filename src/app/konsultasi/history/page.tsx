@@ -68,7 +68,13 @@ export default function KonsultasiHistoryPage() {
     setError(null);
     
     try {
-      const data = await konsultasiService.getPacilianKonsultasi();
+        let data: KonsultasiResponse[];
+        
+        if (user?.role === 'PACILIAN') {
+        data = await konsultasiService.getPacilianKonsultasi();
+        } else {
+        data = await konsultasiService.getCaregiverKonsultasi();
+        }
       
       data.sort((a, b) => new Date(b.scheduleDateTime).getTime() - new Date(a.scheduleDateTime).getTime());
       
@@ -163,7 +169,7 @@ export default function KonsultasiHistoryPage() {
   const stats = getStatusStats();
 
   return (
-    <ProtectedRoute allowedRoles={['PACILIAN']} requiredService="konsultasi">
+    <ProtectedRoute allowedRoles={['PACILIAN, CAREGIVER']} requiredService="konsultasi">
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">

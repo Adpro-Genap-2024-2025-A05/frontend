@@ -25,8 +25,6 @@ export default function KonsultasiPage() {
     { value: 'REQUESTED', label: 'Menunggu Konfirmasi' },
     { value: 'CONFIRMED', label: 'Dikonfirmasi' },
     { value: 'RESCHEDULED', label: 'Perlu Konfirmasi Reschedule' },
-    { value: 'DONE', label: 'Selesai' },
-    { value: 'CANCELLED', label: 'Dibatalkan' }
   ];
 
   const dateOptions = [
@@ -71,7 +69,7 @@ export default function KonsultasiPage() {
   };
 
   const applyFilters = () => {
-    let filtered = [...konsultasiList];
+    let filtered = konsultasiList.filter(k => k.status !== 'DONE' && k.status !== 'CANCELLED');
 
     if (statusFilter !== 'ALL') {
       filtered = filtered.filter(k => k.status === statusFilter);
@@ -203,15 +201,15 @@ export default function KonsultasiPage() {
                 </p>
               </div>
 
-              {user.role === 'PACILIAN' && (
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => router.push('/konsultasi/history')}
-                    className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition"
-                  >
-                    <History className="w-4 h-4 mr-2" />
-                    Riwayat
-                  </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => router.push('/konsultasi/history')}
+                  className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition"
+                >
+                  <History className="w-4 h-4 mr-2" />
+                  Riwayat
+                </button>
+                {user.role === 'PACILIAN' && (
                   <button
                     onClick={handleCreateNew}
                     className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
@@ -219,8 +217,8 @@ export default function KonsultasiPage() {
                     <Plus className="w-4 h-4 mr-2" />
                     Buat Konsultasi Baru
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
 
