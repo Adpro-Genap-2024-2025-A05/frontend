@@ -93,6 +93,9 @@ export default function RegistrationForm() {
       if (!form.speciality) {
         errors.push("Spesialisasi wajib dipilih.");
       }
+      if (!form.address.trim()) {
+        errors.push("Alamat rumah wajib diisi.");
+      }
       if (!form.workAddress.trim()) {
         errors.push("Alamat tempat kerja wajib diisi.");
       }
@@ -131,6 +134,7 @@ export default function RegistrationForm() {
         email: form.email,
         password: form.password,
         nik: form.nik,
+        address: form.address,
         workAddress: form.workAddress,
         phoneNumber: form.phoneNumber,
         speciality: form.speciality, 
@@ -315,6 +319,17 @@ export default function RegistrationForm() {
                 onChange={handleChange}
                 className="block w-full rounded-md border border-gray-300 shadow-sm px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
                 placeholder="Hospital/Clinic Address"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-2">Address</label>
+              <input
+                type="text"
+                name="address"
+                value={form.address}
+                onChange={handleChange}
+                className="block w-full rounded-md border border-gray-300 shadow-sm px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                placeholder="Full address"
               />
             </div>
           </div>

@@ -94,7 +94,6 @@ export default function ProfilePage() {
   const fetchProfile = async () => {
     try {
       setIsLoading(true);
-      console.log('JWT token di FE:', localStorage.getItem('token'));
       const profileData = await profileService.getProfile();
       setProfile(profileData);
       
@@ -150,6 +149,7 @@ export default function ProfilePage() {
       } else if (isCaregiver()) {
         updateRequest.speciality = editForm.speciality;
         updateRequest.workAddress = editForm.workAddress;
+        updateRequest.address = editForm.address;
       }
       
       const updatedProfile = await profileService.updateProfile(updateRequest);
@@ -357,8 +357,6 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                {/* Address - Only for PACILIAN */}
-                {isPacilian() && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       <MapPin className="w-4 h-4 inline mr-1" />
@@ -369,14 +367,14 @@ export default function ProfilePage() {
                       onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
                       disabled={!isEditing}
                       rows={3}
+                      placeholder="Masukkan alamat lengkap Anda"
                       className={`w-full px-3 py-2 border rounded-lg resize-none ${
                         isEditing 
-                          ? 'border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500' 
+                          ? 'border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500' 
                           : 'border-gray-300 bg-gray-50'
                       }`}
                     />
                   </div>
-                )}
               </div>
 
               {/* Action Buttons */}
