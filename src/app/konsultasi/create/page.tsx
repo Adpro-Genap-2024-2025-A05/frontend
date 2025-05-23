@@ -83,7 +83,7 @@ export default function CreateKonsultasiPage() {
     setSelectedSchedule(null);
     setSelectedDateTime('');
     setAvailableTimes([]);
-    await fetchSchedules(doctor.caregiverId);
+    await fetchSchedules(doctor.id);
     setCurrentStep(2);
   };
 

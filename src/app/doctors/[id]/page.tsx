@@ -60,7 +60,7 @@ export default function DoctorDetailPage() {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
-          caregiver: doctor.caregiverId
+          caregiver: doctor.id
         })
       });
 

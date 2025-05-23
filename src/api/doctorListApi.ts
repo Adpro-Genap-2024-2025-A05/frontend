@@ -34,10 +34,10 @@ export interface Doctor {
 export interface DoctorSearchParams {
   name?: string;
   speciality?: string;
-  workingSchedule?: string; // Deprecated: kept for backward compatibility
-  workingDay?: string;      // NEW: Day of the week (MONDAY, TUESDAY, etc.)
-  startTime?: string;       // NEW: Start time in HH:mm format
-  endTime?: string;         // NEW: End time in HH:mm format
+  workingSchedule?: string;
+  workingDay?: string;
+  startTime?: string;
+  endTime?: string;
   page?: number;
   size?: number;
 }
