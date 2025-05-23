@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Edit, Trash, Check, X } from 'lucide-react';
+import { Edit, Trash, Check, X, Clock } from 'lucide-react';
 import { ChatBubble } from './ChatBubble';
 
 interface ChatMessageProps {
@@ -68,28 +68,41 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   };
 
   return (
-    <div className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-4`}>
-      <div className="max-w-xs md:max-w-md">
+    <div className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-6 group`}>
+      <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} max-w-full`}>
         <ChatBubble isOwnMessage={isOwnMessage}>
           {isEditing ? (
-            <div>
+            <div className="w-full">
               <textarea
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
-                className="w-full p-2 border rounded text-gray-100 resize-none focus:outline-none focus:ring-2 focus:ring-blue-300"
-                rows={2}
+                className={`w-full p-3 border-2 rounded-xl resize-none focus:outline-none focus:ring-2 transition-all duration-200
+                  ${isOwnMessage 
+                    ? 'bg-blue-400/20 border-blue-300 text-white placeholder-blue-200 focus:ring-blue-300/50' 
+                    : 'bg-gray-50 border-blue-200 text-gray-800 placeholder-gray-400 focus:ring-blue-300/50'
+                  }`}
+                rows={3}
                 autoFocus
+                placeholder="Edit pesan..."
               />
-              <div className="flex justify-end space-x-2 mt-2">
+              <div className="flex justify-end space-x-2 mt-3">
                 <button 
                   onClick={handleCancelEdit} 
-                  className="p-1 rounded-full hover:bg-gray-700 text-gray-100"
+                  className={`p-2 rounded-full transition-all duration-200 hover:scale-110
+                    ${isOwnMessage 
+                      ? 'hover:bg-blue-400/30 text-blue-100 hover:text-white' 
+                      : 'hover:bg-gray-200 text-gray-500 hover:text-gray-700'
+                    }`}
                 >
                   <X size={16} />
                 </button>
                 <button 
                   onClick={handleSaveEdit} 
-                  className="p-1 rounded-full hover:bg-gray-700 text-gray-100"
+                  className={`p-2 rounded-full transition-all duration-200 hover:scale-110
+                    ${isOwnMessage 
+                      ? 'hover:bg-blue-400/30 text-blue-100 hover:text-white' 
+                      : 'hover:bg-blue-100 text-blue-500 hover:text-blue-600'
+                    }`}
                 >
                   <Check size={16} />
                 </button>
@@ -97,14 +110,17 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             </div>
           ) : (
             <>
-              <p className={deleted ? 'italic text-gray-400' : ''}>
+              <p className={`leading-relaxed ${deleted ? 'italic opacity-70' : ''}`}>
                 {deleted ? 'Pesan telah dihapus' : content}
               </p>
               
-              <div className="flex justify-between items-center mt-1 text-xs">
-                <span className={isOwnMessage ? 'text-blue-100' : 'text-gray-500'}>
-                  {edited ? `(edited • ${editedTime})` : createdTime}
-                </span>
+              <div className="flex justify-between items-center mt-2 text-xs">
+                <div className="flex items-center">
+                  <Clock size={12} className={`mr-1 ${isOwnMessage ? 'text-blue-200' : 'text-gray-400'}`} />
+                  <span className={isOwnMessage ? 'text-blue-200' : 'text-gray-500'}>
+                    {edited ? `Diedit • ${editedTime}` : createdTime}
+                  </span>
+                </div>
               </div>
             </>
           )}
@@ -112,18 +128,24 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
 
         {/* Action menu for own messages that are not deleted */}
         {isOwnMessage && !deleted && !isEditing && (
-          <div className="flex justify-end mt-1 space-x-2">
+          <div className="flex items-center space-x-3 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button 
               onClick={handleStartEdit} 
-              className="text-xs text-gray-500 hover:text-blue-500"
+              className="flex items-center space-x-1 text-xs text-blue-500 hover:text-blue-600 
+                       bg-white hover:bg-blue-50 px-3 py-1 rounded-full shadow-sm border border-blue-200
+                       transition-all duration-200 hover:shadow-md"
             >
-              Edit
+              <Edit size={12} />
+              <span>Edit</span>
             </button>
             <button 
               onClick={handleDelete} 
-              className="text-xs text-gray-500 hover:text-red-500"
+              className="flex items-center space-x-1 text-xs text-red-500 hover:text-red-600 
+                       bg-white hover:bg-red-50 px-3 py-1 rounded-full shadow-sm border border-red-200
+                       transition-all duration-200 hover:shadow-md"
             >
-              Delete
+              <Trash size={12} />
+              <span>Hapus</span>
             </button>
           </div>
         )}

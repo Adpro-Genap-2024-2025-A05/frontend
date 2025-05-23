@@ -164,7 +164,6 @@ export default function ChatSessionPage() {
     }
   };
 
-
   const handleDeleteMessage = async (messageId: string) => {
     const token = localStorage.getItem('token');
     if (!token) return;
@@ -253,33 +252,60 @@ export default function ChatSessionPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      <div className="bg-white p-4 shadow flex items-center">
-        <button className="mr-3" onClick={() => router.push('/chat/sessions')}>
-          <ArrowLeft size={24} />
-        </button>
-        {partnerInfo && (
-          <div className="flex items-center">
-            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
-              <User size={20} className="text-gray-500" />
+    <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 to-white">
+      {/* Header */}
+      <div className="bg-white border-b border-blue-100 shadow-sm backdrop-blur-sm">
+        <div className="px-6 py-4 flex items-center">
+          <button 
+            className="mr-4 p-2 rounded-full hover:bg-blue-50 transition-colors duration-200" 
+            onClick={() => router.push('/chat/sessions')}
+          >
+            <ArrowLeft size={24} className="text-blue-600" />
+          </button>
+          {partnerInfo && (
+            <div className="flex items-center">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center mr-4 shadow-md">
+                <User size={24} className="text-white" />
+              </div>
+              <div>
+                <h2 className="font-semibold text-gray-800 text-lg">{partnerInfo.name}</h2>
+                <p className="text-sm text-blue-600 font-medium">
+                  {partnerInfo.role === 'caregiver' ? 'Caregiver' : 'Pacilian'}
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="font-medium">{partnerInfo.name}</h2>
-              <p className="text-xs text-gray-500">
-                {partnerInfo.role === 'caregiver' ? 'Caregiver' : 'Pacilian'}
-              </p>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      <div ref={containerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-4">
+      {/* Messages Container */}
+      <div 
+        ref={containerRef} 
+        onScroll={handleScroll} 
+        className="flex-1 overflow-y-auto px-4 py-6 bg-gradient-to-b from-blue-25 to-white"
+        style={{ 
+          backgroundImage: `
+            radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(147, 197, 253, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 40% 40%, rgba(219, 234, 254, 0.1) 0%, transparent 50%)
+          `
+        }}
+      >
         {loading ? (
-          <div className="flex justify-center p-12">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+          <div className="flex justify-center items-center py-20">
+            <div className="relative">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent absolute top-0 left-0"></div>
+            </div>
           </div>
         ) : allMessages.length === 0 ? (
-          <div className="text-center text-gray-400 mt-12">Belum ada pesan. Mulai percakapan!</div>
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+              <User size={32} className="text-blue-500" />
+            </div>
+            <p className="text-blue-400 text-lg font-medium">Belum ada pesan</p>
+            <p className="text-blue-300 text-sm">Mulai percakapan dengan mengirim pesan!</p>
+          </div>
         ) : (
           <>
             <ChatMessageList
@@ -293,7 +319,8 @@ export default function ChatSessionPage() {
         )}
       </div>
 
-      <div className="p-4 bg-white border-t">
+      {/* Input Container */}
+      <div className="bg-white border-t border-blue-100 px-6 py-4 shadow-lg">
         <ChatInputBox
           value={input}
           onChange={setInput}

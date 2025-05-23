@@ -1,5 +1,5 @@
 import React from 'react';
-import { User } from 'lucide-react';
+import { User, Clock } from 'lucide-react';
 
 interface ChatSessionCardProps {
   session: {
@@ -47,31 +47,59 @@ export default function ChatSessionCard({ session, onClick }: ChatSessionCardPro
 
   return (
     <div
-      className="bg-white p-4 rounded-lg shadow hover:shadow-md cursor-pointer transition-shadow"
+      className="bg-white rounded-xl shadow-sm hover:shadow-lg cursor-pointer transition-all duration-300 
+                 border border-blue-100 hover:border-blue-200 transform hover:-translate-y-1
+                 backdrop-blur-sm hover:bg-blue-50/30"
       onClick={onClick}
     >
-      <div className="flex items-center">
-        {/* Ikon user tetap, tidak dinamis */}
-        <div className="mr-3">
-          <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-            <User size={24} className="text-gray-500" />
+      <div className="p-5">
+        <div className="flex items-center">
+          {/* Avatar */}
+          <div className="mr-4 relative">
+            <div className="w-14 h-14 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full 
+                          flex items-center justify-center shadow-md">
+              <User size={28} className="text-white" />
+            </div>
+            {/* Online indicator */}
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-500 rounded-full 
+                          border-2 border-white shadow-sm">
+            </div>
           </div>
-        </div>
 
-        {/* Konten teks */}
-        <div className="flex-1">
-          <div className="flex justify-between">
-            <h3 className="font-medium">{session.user2.name}</h3>
-            <span className="text-xs text-gray-500">{displayTime}</span>
-          </div>
-          <div className="flex justify-between items-center mt-1">
-            <p className="text-sm text-gray-600 truncate">{previewText}</p>
-            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-              {session.user2.role === 'caregiver' ? 'Caregiver' : 'Pacilian'}
-            </span>
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="font-semibold text-gray-800 text-lg truncate">
+                {session.user2.name}
+              </h3>
+              <div className="flex items-center text-blue-500 ml-3">
+                <Clock size={14} className="mr-1" />
+                <span className="text-sm font-medium whitespace-nowrap">
+                  {displayTime}
+                </span>
+              </div>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <p className="text-gray-600 text-sm truncate flex-1 mr-3">
+                {previewText}
+              </p>
+              <span className={`
+                px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap shadow-sm
+                ${session.user2.role === 'caregiver' 
+                  ? 'bg-blue-500 text-white' 
+                  : 'bg-blue-100 text-blue-700'
+                }
+              `}>
+                {session.user2.role === 'caregiver' ? 'Caregiver' : 'Pacilian'}
+              </span>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Subtle bottom border for depth */}
+      <div className="h-1 bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 rounded-b-xl opacity-20"></div>
     </div>
   );
 }
