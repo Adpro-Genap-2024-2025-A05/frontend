@@ -49,10 +49,9 @@ const DAYS_OF_WEEK = [
 
 const TIME_SLOTS = Array.from({ length: 24 }, (_, i) => {
   const hour = i.toString().padStart(2, '0');
-  const nextHour = ((i + 1) % 24).toString().padStart(2, '0');
   return {
     value: `${hour}:00`,
-    label: `${hour}:00 - ${nextHour}:00`
+    label: `${hour}:00`
   };
 });
 
@@ -86,12 +85,6 @@ export default function DoctorsPage() {
     }
   };
 
-  const getNextHour = (timeStr: string): string => {
-    const [hours] = timeStr.split(':').map(Number);
-    const nextHour = (hours + 1) % 24;
-    return `${nextHour.toString().padStart(2, '0')}:00`;
-  };
-
   useEffect(() => {
     fetchDoctors();
   }, []);
@@ -109,6 +102,12 @@ export default function DoctorsPage() {
 
     setSearchParams(newParams);
     fetchDoctors(newParams);
+  };
+
+  const getNextHour = (timeStr: string): string => {
+    const [hours] = timeStr.split(':').map(Number);
+    const nextHour = (hours + 1) % 24;
+    return `${nextHour.toString().padStart(2, '0')}:00`;
   };
 
   const handleClearFilters = () => {
@@ -220,10 +219,15 @@ export default function DoctorsPage() {
                   <option value="">Pilih Waktu</option>
                   {TIME_SLOTS.map(timeSlot => (
                     <option key={timeSlot.value} value={timeSlot.value}>
-                      {timeSlot.label}
+                      {timeSlot.label} - {getNextHour(timeSlot.value)}
                     </option>
                   ))}
                 </select>
+                {!selectedDay && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Pilih hari terlebih dahulu
+                  </p>
+                )}
               </div>
             </div>
 
@@ -243,6 +247,35 @@ export default function DoctorsPage() {
                 Reset Filter
               </button>
             </div>
+
+            {/* Active Filters Display */}
+            {(nameFilter || specialityFilter || selectedDay || selectedTime) && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <p className="text-sm font-medium text-gray-700 mb-2">Filter Aktif:</p>
+                <div className="flex flex-wrap gap-2">
+                  {nameFilter && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      Nama: {nameFilter}
+                    </span>
+                  )}
+                  {specialityFilter && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      Spesialisasi: {specialityFilter}
+                    </span>
+                  )}
+                  {selectedDay && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                      Hari: {selectedDay.charAt(0) + selectedDay.slice(1).toLowerCase()}
+                    </span>
+                  )}
+                  {selectedTime && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                      Waktu: {selectedTime} - {getNextHour(selectedTime)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Results Summary */}
