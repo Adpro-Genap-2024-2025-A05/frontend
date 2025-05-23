@@ -19,7 +19,7 @@ export default function TestPage() {
   }, []);
 
   return (
-    <ProtectedRoute allowedRoles={['PACILIAN']} requiredService="konsultasi">
+    <ProtectedRoute allowedRoles={['CAREGIVER']} requiredService="konsultasi">
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
         <div className="bg-white shadow-lg rounded-lg p-8 max-w-md w-full">
           <h1 className="text-2xl font-bold text-center mb-6 text-indigo-700">

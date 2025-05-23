@@ -5,19 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, User } from 'lucide-react';
 import ChatMessageList from '../components/ChatMessageList';
 import ChatInputBox from '../components/ChatInputBox';
-import { verifyTokenForService } from '@/middleware/apiMiddleware';
+import chatService, { ChatMessage } from '@/api/chatApi';
 import tokenService from '@/services/tokenService';
-
-interface ChatMessage {
-  id: string;
-  senderId: string;
-  content: string;
-  sessionId: string;
-  createdAt: string;
-  editedAt?: string;
-  edited: boolean;
-  deleted: boolean;
-}
 
 interface UserInfo {
   id: string;
@@ -38,6 +27,7 @@ export default function ChatSessionPage() {
   const [partnerInfo, setPartnerInfo] = useState<UserInfo | null>(null);
   const [currentUser, setCurrentUser] = useState<UserInfo | null>(null);
   const [input, setInput] = useState('');
+  const [sending, setSending] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef(0);
@@ -45,64 +35,51 @@ export default function ChatSessionPage() {
 
   useEffect(() => {
     const fetchMessages = async () => {
-      const isValid = await verifyTokenForService('chat');
-      if (!isValid) {
-        router.push('/login');
-        return;
-      }
-
-      const token = tokenService.getToken();
-      const user = tokenService.getUser();
-      if (!token || !user) {
-        router.push('/login');
-        return;
-      }
-
       try {
         setLoading(true);
+        setError(null);
 
-        const res = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/api/chat/session/${params.sessionId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const user = tokenService.getUser();
+        if (!user) {
+          router.push('/login');
+          return;
+        }
 
-        if (!res.ok) throw new Error('Gagal mengambil pesan chat');
+        const messages = await chatService.getMessages(params.sessionId);
 
-        const responseJson = await res.json();
-        const data = responseJson.data;
+        const sortedMessages = messages.sort((a, b) => 
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
 
-        const formattedMessages: ChatMessage[] = data.messages
-          .map((msg: any): ChatMessage => ({
-            ...msg,
-            edited: msg.edited,
-            deleted: msg.deleted,
-            createdAt: msg.createdAt,
-          }))
-          .sort((a: ChatMessage, b: ChatMessage) =>
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-          );
-
-        setAllMessages(formattedMessages);
-        setVisibleMessages(formattedMessages.slice(-MESSAGES_PER_LOAD));
+        setAllMessages(sortedMessages);
+        setVisibleMessages(sortedMessages.slice(-MESSAGES_PER_LOAD));
         offsetRef.current = MESSAGES_PER_LOAD;
 
-        const isCurrentUserPacilian = user.id === data.pacilian;
-        setCurrentUser({
-          id: user.id,
-          name: user.name,
-          role: isCurrentUserPacilian ? 'pacilian' : 'caregiver',
-        });
+        const sessions = await chatService.getSessions();
+        const currentSession = sessions.find(s => s.id === params.sessionId);
+        
+        if (currentSession) {
+          setCurrentUser({
+            id: user.id,
+            name: user.name,
+            role: user.role === 'PACILIAN' ? 'pacilian' : 'caregiver',
+          });
 
-        setPartnerInfo({
-          id: isCurrentUserPacilian ? data.caregiver : data.pacilian,
-          name: isCurrentUserPacilian ? data.caregiverName : data.pacilianName,
-          role: isCurrentUserPacilian ? 'caregiver' : 'pacilian',
-        });
+          setPartnerInfo(currentSession.user2);
+        }
 
         requestAnimationFrame(() => {
           messagesEndRef.current?.scrollIntoView();
         });
       } catch (err) {
-        setError('');
+        console.error('Error fetching messages:', err);
+        
+        if (err instanceof Error && err.message === 'Token tidak valid') {
+          router.push('/login');
+          return;
+        }
+        
+        setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
       } finally {
         setLoading(false);
       }
@@ -129,127 +106,122 @@ export default function ChatSessionPage() {
   };
 
   const handleEditMessage = async (messageId: string, newContent: string) => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/api/chat/message/${messageId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ content: newContent }),
-      });
-
-      if (!res.ok) throw new Error('Gagal mengedit pesan');
-
-      const saved = (await res.json()).data;
-
-      const updated: ChatMessage = {
-        id: saved.id,
-        content: saved.content,
-        senderId: saved.senderId,
-        sessionId: saved.session?.id || params.sessionId,
-        createdAt: saved.createdAt,
-        editedAt: saved.editedAt,
-        edited: saved.edited,
-        deleted: saved.deleted,
-      };
-
-      setAllMessages(prev => prev.map(m => m.id === messageId ? updated : m));
-      setVisibleMessages(prev => prev.map(m => m.id === messageId ? updated : m));
-    } catch {
-      alert('Gagal mengedit pesan.');
+      const updatedMessage = await chatService.editMessage(messageId, newContent);
+      
+      setAllMessages(prev => prev.map(m => m.id === messageId ? updatedMessage : m));
+      setVisibleMessages(prev => prev.map(m => m.id === messageId ? updatedMessage : m));
+    } catch (err) {
+      console.error('Error editing message:', err);
+      alert('Gagal mengedit pesan. Silakan coba lagi.');
     }
   };
 
   const handleDeleteMessage = async (messageId: string) => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/api/chat/message/${messageId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!res.ok) throw new Error('Gagal menghapus pesan');
-
-      setAllMessages(prev => prev.map(m => m.id === messageId
-        ? { ...m, deleted: true, content: 'Pesan telah dihapus' }
-        : m));
-      setVisibleMessages(prev => prev.map(m => m.id === messageId
-        ? { ...m, deleted: true, content: 'Pesan telah dihapus' }
-        : m));
-    } catch {
-      alert('Gagal menghapus pesan.');
+      await chatService.deleteMessage(messageId);
+      
+      const deletedMessage = { deleted: true, content: 'Pesan telah dihapus' };
+      setAllMessages(prev => prev.map(m => m.id === messageId ? { ...m, ...deletedMessage } : m));
+      setVisibleMessages(prev => prev.map(m => m.id === messageId ? { ...m, ...deletedMessage } : m));
+    } catch (err) {
+      console.error('Error deleting message:', err);
+      alert('Gagal menghapus pesan. Silakan coba lagi.');
     }
   };
 
-  const handleSendMessage = () => {
-    if (!input.trim() || !currentUser) return;
+  const handleSendMessage = async () => {
+    if (!input.trim() || !currentUser || sending) return;
 
-    const token = tokenService.getToken();
-    if (!token) return router.push('/login');
+    const messageContent = input.trim();
+    setInput('');
+    setSending(true);
 
     const tempId = `temp-${Date.now()}-${Math.random()}`;
     const tempMessage: ChatMessage = {
       id: tempId,
-      content: input,
+      content: messageContent,
       senderId: currentUser.id,
       sessionId: params.sessionId,
       createdAt: new Date().toISOString(),
-      editedAt: '',
       edited: false,
       deleted: false,
     };
 
     setAllMessages(prev => [...prev, tempMessage]);
     setVisibleMessages(prev => [...prev, tempMessage]);
-    setInput('');
 
     requestAnimationFrame(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     });
 
-    (async () => {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/api/chat/send`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ content: tempMessage.content, sessionId: params.sessionId }),
-        });
-
-        if (!res.ok) throw new Error('Gagal mengirim pesan');
-
-        const saved = (await res.json()).data;
-
-        const updated: ChatMessage = {
-          id: saved.id,
-          content: saved.content,
-          senderId: saved.senderId,
-          sessionId: saved.session?.id || params.sessionId,
-          createdAt: saved.createdAt,
-          editedAt: saved.editedAt,
-          edited: saved.edited,
-          deleted: saved.deleted,
-        };
-
-        setAllMessages(prev => prev.map(m => m.id === tempId ? updated : m));
-        setVisibleMessages(prev => prev.map(m => m.id === tempId ? updated : m));
-      } catch {
-        setAllMessages(prev => prev.filter(m => m.id !== tempId));
-        setVisibleMessages(prev => prev.filter(m => m.id !== tempId));
-        alert('Gagal mengirim pesan. Silakan coba lagi.');
-      }
-    })();
+    try {
+      const savedMessage = await chatService.sendMessage(params.sessionId, messageContent);
+      
+      setAllMessages(prev => prev.map(m => m.id === tempId ? savedMessage : m));
+      setVisibleMessages(prev => prev.map(m => m.id === tempId ? savedMessage : m));
+    } catch (err) {
+      console.error('Error sending message:', err);
+      
+      setAllMessages(prev => prev.filter(m => m.id !== tempId));
+      setVisibleMessages(prev => prev.filter(m => m.id !== tempId));
+      
+      setInput(messageContent);
+      alert('Gagal mengirim pesan. Silakan coba lagi.');
+    } finally {
+      setSending(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 to-white">
+        <div className="flex justify-center items-center flex-1">
+          <div className="text-center">
+            <div className="relative mb-6">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 mx-auto"></div>
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent absolute top-0 left-1/2 transform -translate-x-1/2"></div>
+            </div>
+            <p className="text-blue-500 font-medium">Memuat percakapan...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 to-white">
+        <div className="flex justify-center items-center flex-1">
+          <div className="bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-xl p-6 shadow-sm max-w-md">
+            <div className="flex items-center mb-3">
+              <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center mr-3">
+                <User size={20} className="text-white" />
+              </div>
+              <h3 className="text-red-700 font-semibold">Terjadi Kesalahan</h3>
+            </div>
+            <p className="text-red-600 mb-4">{error}</p>
+            <div className="flex gap-2">
+              <button
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg 
+                         font-medium transition-colors duration-200 shadow-sm text-sm"
+                onClick={() => window.location.reload()}
+              >
+                Coba lagi
+              </button>
+              <button
+                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg 
+                         font-medium transition-colors duration-200 shadow-sm text-sm"
+                onClick={() => router.push('/chat/sessions')}
+              >
+                Kembali
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 to-white">
@@ -291,14 +263,7 @@ export default function ChatSessionPage() {
           `
         }}
       >
-        {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="relative">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200"></div>
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent absolute top-0 left-0"></div>
-            </div>
-          </div>
-        ) : allMessages.length === 0 ? (
+        {allMessages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-4">
               <User size={32} className="text-blue-500" />
@@ -325,6 +290,8 @@ export default function ChatSessionPage() {
           value={input}
           onChange={setInput}
           onSend={handleSendMessage}
+          disabled={sending}
+          placeholder={sending ? 'Mengirim pesan...' : 'Ketik pesan...'}
         />
       </div>
     </div>

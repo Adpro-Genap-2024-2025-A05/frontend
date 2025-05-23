@@ -5,14 +5,14 @@ const API_CONFIG = {
   baseUrls: {
     auth: process.env.NEXT_PUBLIC_AUTH_BASE_URL || 'http://localhost:8080',
     konsultasi: process.env.NEXT_PUBLIC_KONSULTASI_BASE_URL || 'http://localhost:8081',
-    profile: process.env.NEXT_PUBLIC_PROFILE_BASE_URL || 'http://localhost:8080',
+    doctorList: process.env.NEXT_PUBLIC_DOCTOR_LIST_BASE_URL || 'http://localhost:8082',
     rating: process.env.NEXT_PUBLIC_RATING_BASE_URL || 'http://localhost:8083',
     chat: process.env.NEXT_PUBLIC_CHAT_BASE_URL || 'http://localhost:8082',
   },
   verifyEndpoint: 'auth/verify'
 };
 
-export type ServiceType = 'auth' | 'konsultasi' | 'profile' | 'rating' | 'chat';
+export type ServiceType = 'auth' | 'konsultasi' | 'doctorList' | 'rating' | 'chat';
 
 export const getServiceBaseUrl = (serviceType: ServiceType): string => {
   return API_CONFIG.baseUrls[serviceType];
@@ -55,7 +55,7 @@ export const createApiMiddleware = (baseUrl: string) => {
 
 export const authApi = createApiMiddleware(API_CONFIG.baseUrls.auth);
 export const konsultasiApi = createApiMiddleware(API_CONFIG.baseUrls.konsultasi);
-export const profileApi = createApiMiddleware(API_CONFIG.baseUrls.profile);
+export const doctorListApi = createApiMiddleware(API_CONFIG.baseUrls.doctorList);
 export const ratingApi = createApiMiddleware(API_CONFIG.baseUrls.rating);
 export const chatApi = createApiMiddleware(API_CONFIG.baseUrls.chat);
 
@@ -66,7 +66,7 @@ export const verifyTokenForService = async (serviceType: ServiceType): Promise<b
   try {
     const api = serviceType === 'auth' ? authApi : 
                serviceType === 'konsultasi' ? konsultasiApi :
-               serviceType === 'profile' ? profileApi :
+               serviceType === 'doctorList' ? doctorListApi :
                serviceType === 'rating' ? ratingApi : chatApi;
                
     const response = await api.post(API_CONFIG.verifyEndpoint).json<{status: number, message: string, timestamp: string, data: {valid: boolean}}>();
@@ -81,7 +81,7 @@ export const verifyTokenForService = async (serviceType: ServiceType): Promise<b
 const api = {
   auth: authApi,
   konsultasi: konsultasiApi,
-  profile: profileApi,
+  doctorList: doctorListApi,
   rating: ratingApi,
   chat: chatApi
 };

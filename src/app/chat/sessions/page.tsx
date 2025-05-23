@@ -4,28 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import ChatSessionCard from './components/ChatSessionCard';
 import { Search, MessageSquare, Users } from 'lucide-react';
-import { verifyTokenForService } from '@/middleware/apiMiddleware';
-import tokenService from '@/services/tokenService';
-
-interface ChatMessage {
-  content: string;
-  createdAt: string;
-}
-
-interface ChatSession {
-  id: string;
-  user2: {
-    id: string;
-    name: string;
-    role: 'pacilian' | 'caregiver';
-    avatar?: string | null;
-  };
-  updatedAt: string;
-  lastMessage?: {
-    content: string;
-    createdAt: string;
-  };
-}
+import chatService, { ChatSession } from '@/api/chatApi';
 
 export default function ChatSessionsPage() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -36,55 +15,20 @@ export default function ChatSessionsPage() {
 
   useEffect(() => {
     const fetchSessions = async () => {
-      const isValid = await verifyTokenForService('chat');
-      if (!isValid) {
-        router.push('/login');
-        return;
-      }
-
-      const token = tokenService.getToken();
-      const user = tokenService.getUser();
-
-      if (!token || !user) {
-        router.push('/login');
-        return;
-      }
-
       try {
         setLoading(true);
-        const response = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/api/chat/session/user`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Gagal mengambil data sesi chat');
-        }
-
-        const json = await response.json();
-        const sessionData = json.data;
-        const isPacilian = user.role === 'PACILIAN';
-
-        const mapped = sessionData.map((session: any): ChatSession => ({
-          id: session.id,
-          user2: {
-            id: isPacilian ? session.caregiver : session.pacilian,
-            name: isPacilian ? session.caregiverName : session.pacilianName,
-            role: isPacilian ? 'caregiver' : 'pacilian',
-            avatar: null,
-          },
-          updatedAt: session.createdAt,
-          lastMessage: session.messages?.length
-            ? {
-                content: session.messages[session.messages.length - 1].content,
-                createdAt: session.messages[session.messages.length - 1].createdAt,
-              }
-            : undefined,
-        }));
-
-        setSessions(mapped);
+        setError(null);
+        
+        const sessionData = await chatService.getSessions();
+        setSessions(sessionData);
       } catch (err) {
+        console.error('Error fetching chat sessions:', err);
+        
+        if (err instanceof Error && err.message === 'Token tidak valid') {
+          router.push('/login');
+          return;
+        }
+        
         setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
       } finally {
         setLoading(false);
@@ -100,6 +44,10 @@ export default function ChatSessionsPage() {
 
   const handleSessionClick = (sessionId: string) => {
     router.push(`/chat/roomchat/${sessionId}`);
+  };
+
+  const handleRetry = () => {
+    window.location.reload();
   };
 
   return (
@@ -159,7 +107,7 @@ export default function ChatSessionsPage() {
             <button
               className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg 
                        font-medium transition-colors duration-200 shadow-sm"
-              onClick={() => window.location.reload()}
+              onClick={handleRetry}
             >
               Coba lagi
             </button>
@@ -223,4 +171,3 @@ export default function ChatSessionsPage() {
     </div>
   );
 }
-              

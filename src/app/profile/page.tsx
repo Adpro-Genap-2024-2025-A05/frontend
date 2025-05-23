@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import useAuth from '@/hooks/useAuth';
-import profileService, { UserProfile, UpdateProfileRequest, PasswordChangeRequest } from '@/api/profileApi';
+import profileService, { UserProfile, UpdateProfileRequest, PasswordChangeRequest } from '@/api/authApi';
 import { User, Edit, Save, X, Eye, EyeOff, Trash2, History, Phone, MapPin, FileText, Briefcase, Stethoscope } from 'lucide-react';
 
 const ROLES = {
@@ -210,7 +210,7 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <ProtectedRoute requiredService="profile">
+      <ProtectedRoute requiredService="auth">
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-lg">Memuat profil...</div>
         </div>
@@ -220,7 +220,7 @@ export default function ProfilePage() {
 
   if (!profile) {
     return (
-      <ProtectedRoute requiredService="profile">
+      <ProtectedRoute requiredService="auth">
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-lg text-red-500">Gagal memuat profil</div>
         </div>
@@ -229,7 +229,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <ProtectedRoute requiredService="profile">
+    <ProtectedRoute requiredService="auth">
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="container mx-auto px-4 max-w-4xl">
           {/* Header */}
