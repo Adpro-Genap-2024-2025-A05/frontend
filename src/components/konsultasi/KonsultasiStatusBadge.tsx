@@ -30,7 +30,7 @@ export default function KonsultasiStatusBadge({ status }: KonsultasiStatusBadgeP
       case 'RESCHEDULED':
         return {
           color: 'bg-purple-100 text-purple-800 border-purple-200',
-          label: 'Menunggu Persetujuan Jadwal Baru'
+          label: 'Menunggu Persetujuan Reschedule'
         };
       default:
         return {

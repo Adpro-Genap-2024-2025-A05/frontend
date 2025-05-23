@@ -6,7 +6,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import useAuth from '@/hooks/useAuth';
 import konsultasiService, { KonsultasiResponse } from '@/api/konsultasiApi';
 import KonsultasiCard from '@/components/konsultasi/KonsultasiCard';
-import { Plus, Filter, RefreshCw, Search } from 'lucide-react';
+import { Plus, Filter, RefreshCw, Search, History } from 'lucide-react';
 
 export default function KonsultasiPage() {
   const router = useRouter();
@@ -15,7 +15,7 @@ export default function KonsultasiPage() {
   const [filteredList, setFilteredList] = useState<KonsultasiResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [dateFilter, setDateFilter] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,7 +24,7 @@ export default function KonsultasiPage() {
     { value: 'ALL', label: 'Semua Status' },
     { value: 'REQUESTED', label: 'Menunggu Konfirmasi' },
     { value: 'CONFIRMED', label: 'Dikonfirmasi' },
-    { value: 'RESCHEDULED', label: 'Perlu Konfirmasi Jadwal' },
+    { value: 'RESCHEDULED', label: 'Perlu Konfirmasi Reschedule' },
     { value: 'DONE', label: 'Selesai' },
     { value: 'CANCELLED', label: 'Dibatalkan' }
   ];
@@ -46,21 +46,21 @@ export default function KonsultasiPage() {
 
   const fetchKonsultasi = async () => {
     if (!user) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       let data: KonsultasiResponse[];
-      
+
       if (user.role === 'PACILIAN') {
         data = await konsultasiService.getPacilianKonsultasi();
       } else {
         data = await konsultasiService.getCaregiverKonsultasi();
       }
-      
+
       data.sort((a, b) => new Date(b.scheduleDateTime).getTime() - new Date(a.scheduleDateTime).getTime());
-      
+
       setKonsultasiList(data);
     } catch (err: any) {
       console.error('Error fetching konsultasi:', err);
@@ -72,19 +72,19 @@ export default function KonsultasiPage() {
 
   const applyFilters = () => {
     let filtered = [...konsultasiList];
-    
+
     if (statusFilter !== 'ALL') {
       filtered = filtered.filter(k => k.status === statusFilter);
     }
-    
+
     if (dateFilter !== 'ALL') {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      
+
       filtered = filtered.filter(k => {
         const scheduleDate = new Date(k.scheduleDateTime);
         const scheduleDateOnly = new Date(scheduleDate.getFullYear(), scheduleDate.getMonth(), scheduleDate.getDate());
-        
+
         switch (dateFilter) {
           case 'TODAY':
             return scheduleDateOnly.getTime() === today.getTime();
@@ -97,15 +97,15 @@ export default function KonsultasiPage() {
         }
       });
     }
-    
+
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
-      filtered = filtered.filter(k => 
+      filtered = filtered.filter(k =>
         k.id.toLowerCase().includes(search) ||
         (k.notes && k.notes.toLowerCase().includes(search))
       );
     }
-    
+
     setFilteredList(filtered);
   };
 
@@ -129,7 +129,7 @@ export default function KonsultasiPage() {
 
   const handleCancel = async (id: string) => {
     if (!confirm('Apakah Anda yakin ingin membatalkan konsultasi ini?')) return;
-    
+
     try {
       await konsultasiService.cancelKonsultasi(id);
       await fetchKonsultasi();
@@ -141,7 +141,7 @@ export default function KonsultasiPage() {
 
   const handleComplete = async (id: string) => {
     if (!confirm('Apakah Anda yakin konsultasi ini sudah selesai?')) return;
-    
+
     try {
       await konsultasiService.completeKonsultasi(id);
       await fetchKonsultasi();
@@ -151,11 +151,17 @@ export default function KonsultasiPage() {
     }
   };
 
+  const handleUpdateRequest = (id: string) => {
+    router.push(`/konsultasi/${id}/update-request`);
+  };
+
   const handleReschedule = (id: string) => {
     router.push(`/konsultasi/${id}/reschedule`);
   };
 
   const handleAcceptReschedule = async (id: string) => {
+    if (!confirm('Apakah Anda yakin ingin menerima perubahan jadwal ini?')) return;
+
     try {
       await konsultasiService.acceptReschedule(id);
       await fetchKonsultasi();
@@ -166,6 +172,8 @@ export default function KonsultasiPage() {
   };
 
   const handleRejectReschedule = async (id: string) => {
+    if (!confirm('Apakah Anda yakin ingin menolak perubahan jadwal ini?')) return;
+
     try {
       await konsultasiService.rejectReschedule(id);
       await fetchKonsultasi();
@@ -188,21 +196,30 @@ export default function KonsultasiPage() {
                   {user.role === 'PACILIAN' ? 'Konsultasi Saya' : 'Manajemen Konsultasi'}
                 </h1>
                 <p className="text-gray-600 mt-1">
-                  {user.role === 'PACILIAN' 
+                  {user.role === 'PACILIAN'
                     ? 'Kelola jadwal konsultasi dengan dokter'
                     : 'Kelola konsultasi dari pasien'
                   }
                 </p>
               </div>
-              
+
               {user.role === 'PACILIAN' && (
-                <button
-                  onClick={handleCreateNew}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Buat Konsultasi Baru
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => router.push('/konsultasi/history')}
+                    className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition"
+                  >
+                    <History className="w-4 h-4 mr-2" />
+                    Riwayat
+                  </button>
+                  <button
+                    onClick={handleCreateNew}
+                    className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Buat Konsultasi Baru
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -219,7 +236,7 @@ export default function KonsultasiPage() {
                 Refresh
               </button>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -299,11 +316,11 @@ export default function KonsultasiPage() {
                   {konsultasiList.length === 0 ? 'Belum ada konsultasi' : 'Tidak ada hasil yang sesuai filter'}
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  {konsultasiList.length === 0 
-                    ? (user.role === 'PACILIAN' 
-                        ? 'Mulai buat konsultasi pertama Anda dengan dokter.'
-                        : 'Belum ada pasien yang membuat konsultasi.'
-                      )
+                  {konsultasiList.length === 0
+                    ? (user.role === 'PACILIAN'
+                      ? 'Mulai buat konsultasi pertama Anda dengan dokter.'
+                      : 'Belum ada pasien yang membuat konsultasi.'
+                    )
                     : 'Coba ubah filter pencarian Anda.'
                   }
                 </p>
@@ -335,6 +352,7 @@ export default function KonsultasiPage() {
                     onCancel={handleCancel}
                     onConfirm={handleConfirm}
                     onComplete={handleComplete}
+                    onUpdateRequest={handleUpdateRequest}
                     onReschedule={handleReschedule}
                     onAcceptReschedule={handleAcceptReschedule}
                     onRejectReschedule={handleRejectReschedule}

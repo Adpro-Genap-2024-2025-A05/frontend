@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import useAuth from '@/hooks/useAuth';
-import konsultasiService, { KonsultasiResponse, RescheduleKonsultasiDto, Schedule } from '@/api/konsultasiApi';
-import { ArrowLeft, Calendar, Clock, FileText, AlertCircle, RotateCcw } from 'lucide-react';
+import konsultasiService, { KonsultasiResponse, UpdateKonsultasiRequestDto, Schedule } from '@/api/konsultasiApi';
+import { ArrowLeft, Calendar, Clock, FileText, AlertCircle, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 
-export default function RescheduleKonsultasiPage() {
+export default function UpdateKonsultasiRequestPage() {
   const router = useRouter();
   const params = useParams();
   const { user } = useAuth();
@@ -42,10 +42,12 @@ export default function RescheduleKonsultasiPage() {
       const data = await konsultasiService.getKonsultasiById(konsultasiId, user?.role || '');
       setKonsultasi(data);
       
-      const scheduleData = await konsultasiService.getCaregiverSchedules();
+      const scheduleData = await konsultasiService.getCaregiverSchedulesById(data.caregiverId);
       setSchedules(scheduleData);
       
       setSelectedScheduleId(data.scheduleId);
+      setSelectedDateTime(data.scheduleDateTime);
+      setNotes(data.notes || '');
       
       await fetchAvailableTimes(data.scheduleId);
     } catch (err: any) {
@@ -82,7 +84,7 @@ export default function RescheduleKonsultasiPage() {
 
   const handleSubmit = async () => {
     if (!selectedDateTime) {
-      setError('Mohon pilih waktu konsultasi baru.');
+      setError('Mohon pilih waktu konsultasi.');
       return;
     }
 
@@ -90,18 +92,18 @@ export default function RescheduleKonsultasiPage() {
     setError(null);
 
     try {
-      const rescheduleData: RescheduleKonsultasiDto = {
+      const updateData: UpdateKonsultasiRequestDto = {
         newScheduleDateTime: selectedDateTime,
         newScheduleId: selectedScheduleId !== konsultasi?.scheduleId ? selectedScheduleId : undefined,
         notes: notes.trim() || undefined
       };
 
-      await konsultasiService.rescheduleKonsultasi(konsultasiId, rescheduleData);
+      await konsultasiService.updateKonsultasiRequest(konsultasiId, updateData);
       
       router.push(`/konsultasi/${konsultasiId}`);
     } catch (error: any) {
-      console.error('Error rescheduling konsultasi:', error);
-      setError(error.response?.data?.message || 'Gagal mengajukan reschedule konsultasi. Silakan coba lagi.');
+      console.error('Error updating konsultasi request:', error);
+      setError(error.response?.data?.message || 'Gagal mengupdate request konsultasi. Silakan coba lagi.');
     } finally {
       setSubmitting(false);
     }
@@ -118,9 +120,9 @@ export default function RescheduleKonsultasiPage() {
     return `${schedule.day} ${schedule.startTime}-${schedule.endTime}`;
   };
 
-  if (user && user.role !== 'CAREGIVER') {
+  if (user && user.role !== 'PACILIAN') {
     return (
-      <ProtectedRoute allowedRoles={['CAREGIVER']} requiredService="konsultasi">
+      <ProtectedRoute allowedRoles={['PACILIAN']} requiredService="konsultasi">
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
@@ -128,7 +130,7 @@ export default function RescheduleKonsultasiPage() {
               Akses Ditolak
             </h2>
             <p className="text-gray-600 mb-4">
-              Hanya dokter yang dapat mengajukan reschedule konsultasi.
+              Hanya pasien yang dapat mengupdate request konsultasi.
             </p>
             <button
               onClick={() => router.push('/konsultasi')}
@@ -144,7 +146,7 @@ export default function RescheduleKonsultasiPage() {
 
   if (loading) {
     return (
-      <ProtectedRoute allowedRoles={['CAREGIVER']} requiredService="konsultasi">
+      <ProtectedRoute allowedRoles={['PACILIAN']} requiredService="konsultasi">
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
@@ -154,7 +156,7 @@ export default function RescheduleKonsultasiPage() {
 
   if (error && !konsultasi) {
     return (
-      <ProtectedRoute allowedRoles={['CAREGIVER']} requiredService="konsultasi">
+      <ProtectedRoute allowedRoles={['PACILIAN']} requiredService="konsultasi">
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
@@ -173,20 +175,20 @@ export default function RescheduleKonsultasiPage() {
     );
   }
 
-  if (konsultasi?.status !== 'CONFIRMED') {
+  if (konsultasi?.status !== 'REQUESTED') {
     return (
-      <ProtectedRoute allowedRoles={['CAREGIVER']} requiredService="konsultasi">
+      <ProtectedRoute allowedRoles={['PACILIAN']} requiredService="konsultasi">
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
             <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              Konsultasi Tidak Dapat Di-reschedule
+              Request Tidak Dapat Diupdate
             </h2>
             <p className="text-gray-600 mb-4">
-              Hanya konsultasi dengan status "Dikonfirmasi" yang dapat di-reschedule oleh dokter.
+              Hanya request konsultasi dengan status "Menunggu Konfirmasi" yang dapat diupdate.
             </p>
             <p className="text-sm text-gray-500 mb-4">
-              Status saat ini: {konsultasi?.status === 'REQUESTED' && 'Menunggu Konfirmasi'}
+              Status saat ini: {konsultasi?.status === 'CONFIRMED' && 'Dikonfirmasi'}
               {konsultasi?.status === 'RESCHEDULED' && 'Menunggu Persetujuan Reschedule'}
               {konsultasi?.status === 'CANCELLED' && 'Dibatalkan'}
               {konsultasi?.status === 'DONE' && 'Selesai'}
@@ -204,7 +206,7 @@ export default function RescheduleKonsultasiPage() {
   }
 
   return (
-    <ProtectedRoute allowedRoles={['CAREGIVER']} requiredService="konsultasi">
+    <ProtectedRoute allowedRoles={['PACILIAN']} requiredService="konsultasi">
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
           <div className="mb-6">
@@ -217,9 +219,9 @@ export default function RescheduleKonsultasiPage() {
             </button>
             
             <div className="flex items-center mb-2">
-              <RotateCcw className="w-8 h-8 text-purple-600 mr-3" />
+              <Edit className="w-8 h-8 text-blue-600 mr-3" />
               <h1 className="text-3xl font-bold text-gray-900">
-                Ajukan Reschedule Konsultasi
+                Update Request Konsultasi
               </h1>
             </div>
             <p className="text-gray-600">
@@ -231,7 +233,7 @@ export default function RescheduleKonsultasiPage() {
             <div className="lg:col-span-2 space-y-6">
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                  Jadwal Konsultasi Saat Ini
+                  Request Konsultasi Saat Ini
                 </h2>
                 
                 <div className="p-4 bg-gray-50 rounded-lg">
@@ -242,19 +244,19 @@ export default function RescheduleKonsultasiPage() {
                     </span>
                   </div>
                   <p className="text-sm text-gray-600">
-                    Jadwal yang sudah dikonfirmasi
+                    Request yang menunggu konfirmasi dokter
                   </p>
                 </div>
               </div>
 
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                  Pilih Jadwal Baru
+                  Update Jadwal Konsultasi
                 </h2>
 
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Jadwal Anda
+                    Jadwal Dokter
                   </label>
                   <select
                     value={selectedScheduleId}
@@ -296,8 +298,8 @@ export default function RescheduleKonsultasiPage() {
                         {availableTimes.map((time) => (
                           <label
                             key={time}
-                            className={`border rounded-lg p-4 cursor-pointer hover:border-purple-500 transition ${
-                              selectedDateTime === time ? 'border-purple-500 bg-purple-50' : ''
+                            className={`border rounded-lg p-4 cursor-pointer hover:border-blue-500 transition ${
+                              selectedDateTime === time ? 'border-blue-500 bg-blue-50' : ''
                             }`}
                           >
                             <input
@@ -309,12 +311,14 @@ export default function RescheduleKonsultasiPage() {
                               className="sr-only"
                             />
                             <div className="flex items-center">
-                              <Calendar className="w-5 h-5 text-purple-600 mr-3" />
+                              <Calendar className="w-5 h-5 text-blue-600 mr-3" />
                               <div>
                                 <p className="font-medium text-gray-900">
                                   {formatDateTime(time)}
                                 </p>
-                                <p className="text-sm text-gray-600">Tersedia</p>
+                                <p className="text-sm text-gray-600">
+                                  {selectedDateTime === time ? 'Terpilih' : 'Tersedia'}
+                                </p>
                               </div>
                             </div>
                           </label>
@@ -327,22 +331,22 @@ export default function RescheduleKonsultasiPage() {
 
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                  Catatan Reschedule
+                  Catatan Konsultasi
                 </h2>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Alasan Reschedule (Opsional)
+                    Keluhan atau Informasi Tambahan (Opsional)
                   </label>
                   <textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Jelaskan alasan reschedule jadwal kepada pasien..."
+                    placeholder="Jelaskan keluhan atau informasi yang ingin Anda sampaikan kepada dokter..."
                     rows={4}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Catatan ini akan membantu pasien memahami alasan reschedule
+                    Catatan ini akan membantu dokter mempersiapkan konsultasi Anda
                   </p>
                 </div>
               </div>
@@ -351,7 +355,7 @@ export default function RescheduleKonsultasiPage() {
             <div className="lg:col-span-1">
               <div className="bg-white rounded-lg shadow-md p-6 sticky top-4">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Konfirmasi Reschedule
+                  Konfirmasi Update
                 </h3>
 
                 {error && (
@@ -364,9 +368,9 @@ export default function RescheduleKonsultasiPage() {
                 )}
 
                 {selectedDateTime && (
-                  <div className="mb-6 p-4 bg-purple-50 rounded-lg">
-                    <h4 className="font-medium text-purple-900 mb-2">Jadwal Baru:</h4>
-                    <p className="text-sm text-purple-700">
+                  <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+                    <h4 className="font-medium text-blue-900 mb-2">Jadwal Terpilih:</h4>
+                    <p className="text-sm text-blue-700">
                       {formatDateTime(selectedDateTime)}
                     </p>
                   </div>
@@ -375,22 +379,22 @@ export default function RescheduleKonsultasiPage() {
                 <button
                   onClick={handleSubmit}
                   disabled={!selectedDateTime || submitting}
-                  className="w-full px-4 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {submitting ? 'Mengajukan Reschedule...' : 'Ajukan Reschedule'}
+                  {submitting ? 'Mengupdate Request...' : 'Update Request'}
                 </button>
 
                 <p className="text-xs text-gray-500 mt-3 text-center">
-                  Reschedule akan menunggu persetujuan dari pasien
+                  Request yang diupdate masih perlu konfirmasi dokter
                 </p>
 
                 <div className="mt-6 pt-6 border-t border-gray-200">
                   <h4 className="font-medium text-gray-900 mb-3">Informasi</h4>
                   <div className="space-y-2 text-sm text-gray-600">
-                    <p>• Reschedule akan mengubah status menjadi "Menunggu Persetujuan"</p>
-                    <p>• Pasien dapat menerima atau menolak reschedule Anda</p>
-                    <p>• Jika ditolak, jadwal akan kembali ke waktu semula</p>
-                    <p>• Hanya konsultasi yang sudah dikonfirmasi yang bisa di-reschedule</p>
+                    <p>• Anda dapat mengubah request selama dokter belum konfirmasi</p>
+                    <p>• Perubahan jadwal atau catatan akan langsung tersimpan</p>
+                    <p>• Dokter akan melihat request terbaru saat konfirmasi</p>
+                    <p>• Status akan tetap "Menunggu Konfirmasi" setelah update</p>
                   </div>
                 </div>
               </div>

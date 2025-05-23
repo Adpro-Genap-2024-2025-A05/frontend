@@ -89,6 +89,10 @@ export default function KonsultasiDetailPage() {
     });
   };
 
+  const handleUpdateRequest = () => {
+    router.push(`/konsultasi/${konsultasiId}/update`);
+  };
+
   const handleReschedule = () => {
     router.push(`/konsultasi/${konsultasiId}/reschedule`);
   };
@@ -121,12 +125,14 @@ export default function KonsultasiDetailPage() {
         return konsultasi.status === 'REQUESTED';
       case 'complete':
         return konsultasi.status === 'CONFIRMED' && user.role === 'CAREGIVER';
+      case 'update_request':
+        return konsultasi.status === 'REQUESTED' && user.role === 'PACILIAN';
       case 'reschedule':
-        return konsultasi.status === 'REQUESTED';
+        return konsultasi.status === 'CONFIRMED' && user.role === 'CAREGIVER';
       case 'accept_reschedule':
-        return konsultasi.status === 'RESCHEDULED' && user.role === 'CAREGIVER';
+        return konsultasi.status === 'RESCHEDULED' && user.role === 'PACILIAN';
       case 'reject_reschedule':
-        return konsultasi.status === 'RESCHEDULED' && user.role === 'CAREGIVER';
+        return konsultasi.status === 'RESCHEDULED' && user.role === 'PACILIAN';
       default:
         return false;
     }
@@ -179,7 +185,7 @@ export default function KonsultasiDetailPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  Detail Konsultasi
+                  Konsultasi {konsultasi.caregiverData?.name || 'Detail Konsultasi'}
                 </h1>
               </div>
               <KonsultasiStatusBadge status={konsultasi.status} />
@@ -249,7 +255,7 @@ export default function KonsultasiDetailPage() {
                       <p className="text-sm text-gray-600">
                         {konsultasi.status === 'REQUESTED' && 'Menunggu konfirmasi dari dokter'}
                         {konsultasi.status === 'CONFIRMED' && 'Konsultasi telah dikonfirmasi'}
-                        {konsultasi.status === 'RESCHEDULED' && 'Menunggu persetujuan perubahan jadwal'}
+                        {konsultasi.status === 'RESCHEDULED' && 'Dokter mengajukan perubahan jadwal'}
                         {konsultasi.status === 'CANCELLED' && 'Konsultasi telah dibatalkan'}
                         {konsultasi.status === 'DONE' && 'Konsultasi telah selesai'}
                       </p>
@@ -263,10 +269,21 @@ export default function KonsultasiDetailPage() {
                         Perubahan Jadwal Diajukan
                       </h3>
                       <p className="text-sm text-purple-700">
-                        {user?.role === 'CAREGIVER' 
-                          ? 'Pasien telah mengajukan perubahan jadwal. Silakan terima atau tolak perubahan ini.'
-                          : 'Anda telah mengajukan perubahan jadwal. Menunggu persetujuan dari dokter.'
+                        {user?.role === 'PACILIAN' 
+                          ? 'Dokter telah mengajukan perubahan jadwal. Silakan terima atau tolak perubahan ini.'
+                          : 'Anda telah mengajukan perubahan jadwal. Menunggu persetujuan dari pasien.'
                         }
+                      </p>
+                    </div>
+                  )}
+
+                  {konsultasi.status === 'REQUESTED' && user?.role === 'PACILIAN' && (
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <h3 className="font-medium text-blue-900 mb-2">
+                        Request Masih Dapat Diubah
+                      </h3>
+                      <p className="text-sm text-blue-700">
+                        Selama dokter belum mengkonfirmasi, Anda masih dapat mengubah jadwal atau catatan konsultasi.
                       </p>
                     </div>
                   )}
@@ -337,13 +354,23 @@ export default function KonsultasiDetailPage() {
                     </button>
                   )}
 
+                  {canPerformAction('update_request') && (
+                    <button
+                      onClick={handleUpdateRequest}
+                      className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                    >
+                      <Edit className="w-5 h-5 mr-2" />
+                      Update Request
+                    </button>
+                  )}
+
                   {canPerformAction('reschedule') && (
                     <button
                       onClick={handleReschedule}
                       className="w-full flex items-center justify-center px-4 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition"
                     >
                       <RotateCcw className="w-5 h-5 mr-2" />
-                      Reschedule
+                      Ajukan Reschedule
                     </button>
                   )}
 
@@ -379,6 +406,34 @@ export default function KonsultasiDetailPage() {
                       {actionLoading === 'cancel' ? 'Membatalkan...' : 'Batalkan'}
                     </button>
                   )}
+                </div>
+
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <h4 className="font-medium text-gray-900 mb-3">Informasi</h4>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    {user?.role === 'PACILIAN' ? (
+                      <>
+                        {konsultasi.status === 'REQUESTED' && (
+                          <p>• Anda dapat mengubah request selama dokter belum konfirmasi</p>
+                        )}
+                        {konsultasi.status === 'RESCHEDULED' && (
+                          <p>• Dokter telah mengajukan perubahan jadwal, silakan terima atau tolak</p>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {konsultasi.status === 'REQUESTED' && (
+                          <p>• Silakan konfirmasi atau batalkan request dari pasien</p>
+                        )}
+                        {konsultasi.status === 'CONFIRMED' && (
+                          <p>• Anda dapat mengajukan reschedule atau menyelesaikan konsultasi</p>
+                        )}
+                        {konsultasi.status === 'RESCHEDULED' && (
+                          <p>• Menunggu pasien menerima atau menolak reschedule Anda</p>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

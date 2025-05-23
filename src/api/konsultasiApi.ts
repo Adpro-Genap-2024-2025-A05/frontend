@@ -32,6 +32,12 @@ export interface CreateKonsultasiDto {
   notes?: string;
 }
 
+export interface UpdateKonsultasiRequestDto {
+  newScheduleDateTime: string;
+  newScheduleId?: string;
+  notes?: string;
+}
+
 export interface RescheduleKonsultasiDto {
   newScheduleDateTime: string; 
   newScheduleId?: string;
@@ -80,6 +86,19 @@ const konsultasiService = {
       return response.data;
     } catch (error) {
       console.error('Failed to create konsultasi', error);
+      throw error;
+    }
+  },
+
+  updateKonsultasiRequest: async (konsultasiId: string, data: UpdateKonsultasiRequestDto): Promise<KonsultasiResponse> => {
+    try {
+      const response = await api.put(`konsultasi/${konsultasiId}/update-request`, {
+        json: data
+      }).json<ApiResponse<KonsultasiResponse>>();
+      
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update konsultasi request', error);
       throw error;
     }
   },

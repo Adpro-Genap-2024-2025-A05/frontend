@@ -12,6 +12,7 @@ interface KonsultasiCardProps {
   onCancel?: (id: string) => void;
   onConfirm?: (id: string) => void;
   onComplete?: (id: string) => void;
+  onUpdateRequest?: (id: string) => void;
   onReschedule?: (id: string) => void;
   onAcceptReschedule?: (id: string) => void;
   onRejectReschedule?: (id: string) => void;
@@ -26,6 +27,7 @@ export default function KonsultasiCard({
   onCancel,
   onConfirm,
   onComplete,
+  onUpdateRequest,
   onReschedule,
   onAcceptReschedule,
   onRejectReschedule,
@@ -50,12 +52,16 @@ export default function KonsultasiCard({
     return konsultasi.status === 'CONFIRMED' && userRole === 'CAREGIVER' && onComplete;
   };
 
+  const canUpdateRequest = () => {
+    return konsultasi.status === 'REQUESTED' && userRole === 'PACILIAN' && onUpdateRequest;
+  };
+
   const canReschedule = () => {
-    return konsultasi.status === 'REQUESTED' && onReschedule;
+    return konsultasi.status === 'CONFIRMED' && userRole === 'CAREGIVER' && onReschedule;
   };
 
   const canAcceptReject = () => {
-    return konsultasi.status === 'RESCHEDULED' && userRole === 'CAREGIVER';
+    return konsultasi.status === 'RESCHEDULED' && userRole === 'PACILIAN';
   };
 
   return (
@@ -65,7 +71,7 @@ export default function KonsultasiCard({
           <div className="flex-1">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-lg font-semibold text-gray-900">
-                Konsultasi #{konsultasi.id.slice(-8)}
+                Konsultasi {caregiverName}
               </h3>
               <div className="relative">
                 <button
@@ -109,6 +115,18 @@ export default function KonsultasiCard({
                           className="block w-full text-left px-4 py-2 text-sm text-blue-700 hover:bg-gray-100"
                         >
                           Selesai
+                        </button>
+                      )}
+                      
+                      {canUpdateRequest() && (
+                        <button
+                          onClick={() => {
+                            onUpdateRequest!(konsultasi.id);
+                            setShowActions(false);
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-blue-700 hover:bg-gray-100"
+                        >
+                          Update Request
                         </button>
                       )}
                       
@@ -219,6 +237,24 @@ export default function KonsultasiCard({
               className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition"
             >
               Selesai
+            </button>
+          )}
+
+          {canUpdateRequest() && (
+            <button
+              onClick={() => onUpdateRequest!(konsultasi.id)}
+              className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition"
+            >
+              Update
+            </button>
+          )}
+
+          {canReschedule() && (
+            <button
+              onClick={() => onReschedule!(konsultasi.id)}
+              className="px-3 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 transition"
+            >
+              Reschedule
             </button>
           )}
         </div>
