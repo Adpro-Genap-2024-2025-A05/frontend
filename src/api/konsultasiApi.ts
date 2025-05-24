@@ -105,7 +105,7 @@ const konsultasiService = {
 
   confirmKonsultasi: async (konsultasiId: string): Promise<KonsultasiResponse> => {
     try {
-      const response = await api.post(`api/konsultasi/${konsultasiId}/confirm`, {})
+      const response = await api.patch(`api/konsultasi/${konsultasiId}/confirm`, {})
         .json<ApiResponse<KonsultasiResponse>>();
       
       return response.data;
@@ -117,7 +117,7 @@ const konsultasiService = {
 
   cancelKonsultasi: async (konsultasiId: string): Promise<KonsultasiResponse> => {
     try {
-      const response = await api.post(`api/konsultasi/${konsultasiId}/cancel`, {})
+      const response = await api.patch(`api/konsultasi/${konsultasiId}/cancel`, {})
         .json<ApiResponse<KonsultasiResponse>>();
       
       return response.data;
@@ -129,7 +129,7 @@ const konsultasiService = {
 
   completeKonsultasi: async (konsultasiId: string): Promise<KonsultasiResponse> => {
     try {
-      const response = await api.post(`api/konsultasi/${konsultasiId}/complete`, {})
+      const response = await api.patch(`api/konsultasi/${konsultasiId}/complete`, {})
         .json<ApiResponse<KonsultasiResponse>>();
       
       return response.data;
@@ -154,7 +154,7 @@ const konsultasiService = {
 
   acceptReschedule: async (konsultasiId: string): Promise<KonsultasiResponse> => {
     try {
-      const response = await api.post(`api/konsultasi/${konsultasiId}/accept-reschedule`, {})
+      const response = await api.patch(`api/konsultasi/${konsultasiId}/accept-reschedule`, {})
         .json<ApiResponse<KonsultasiResponse>>();
       
       return response.data;
@@ -166,7 +166,7 @@ const konsultasiService = {
 
   rejectReschedule: async (konsultasiId: string): Promise<KonsultasiResponse> => {
     try {
-      const response = await api.post(`api/konsultasi/${konsultasiId}/reject-reschedule`, {})
+      const response = await api.patch(`api/konsultasi/${konsultasiId}/reject-reschedule`, {})
         .json<ApiResponse<KonsultasiResponse>>();
       
       return response.data;
