@@ -2,10 +2,10 @@
 
 import React, { useEffect, useRef, useState, UIEvent } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, User } from 'lucide-react';
+import { ArrowLeft, User, AlertCircle, CheckCircle, X } from 'lucide-react';
 import ChatMessageList from '../components/ChatMessageList';
 import ChatInputBox from '../components/ChatInputBox';
-import chatService, { ChatMessage } from '@/api/chatApi';
+import chatService, { ChatMessage, AjaxState } from '@/api/chatApi';
 import tokenService from '@/services/tokenService';
 
 interface UserInfo {
@@ -13,6 +13,12 @@ interface UserInfo {
   name: string;
   role: 'pacilian' | 'caregiver';
   avatar?: string | null;
+}
+
+interface NotificationState {
+  show: boolean;
+  message: string;
+  type: 'success' | 'error' | 'info';
 }
 
 const MESSAGES_PER_LOAD = 15;
@@ -28,10 +34,23 @@ export default function ChatSessionPage() {
   const [currentUser, setCurrentUser] = useState<UserInfo | null>(null);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [notification, setNotification] = useState<NotificationState>({
+    show: false,
+    message: '',
+    type: 'info'
+  });
+
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef(0);
   const prevScrollHeightRef = useRef(0);
+
+  const showNotification = (message: string, type: 'success' | 'error' | 'info') => {
+    setNotification({ show: true, message, type });
+    setTimeout(() => {
+      setNotification(prev => ({ ...prev, show: false }));
+    }, 3000);
+  };
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -47,7 +66,7 @@ export default function ChatSessionPage() {
 
         const messages = await chatService.getMessages(params.sessionId);
 
-        const sortedMessages = messages.sort((a, b) => 
+        const sortedMessages = messages.sort((a, b) =>
           new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
         );
 
@@ -57,14 +76,13 @@ export default function ChatSessionPage() {
 
         const sessions = await chatService.getSessions();
         const currentSession = sessions.find(s => s.id === params.sessionId);
-        
+
         if (currentSession) {
           setCurrentUser({
             id: user.id,
             name: user.name,
             role: user.role === 'PACILIAN' ? 'pacilian' : 'caregiver',
           });
-
           setPartnerInfo(currentSession.user2);
         }
 
@@ -73,12 +91,12 @@ export default function ChatSessionPage() {
         });
       } catch (err) {
         console.error('Error fetching messages:', err);
-        
+
         if (err instanceof Error && err.message === 'Token tidak valid') {
           router.push('/login');
           return;
         }
-        
+
         setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
       } finally {
         setLoading(false);
@@ -87,6 +105,40 @@ export default function ChatSessionPage() {
 
     fetchMessages();
   }, [params.sessionId, router]);
+
+  useEffect(() => {
+    if (!params.sessionId || !currentUser) return;
+
+    const pollingInterval = setInterval(async () => {
+      try {
+        const newMessages = await chatService.getMessages(params.sessionId);
+        const sortedMessages = newMessages.sort((a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+
+        setAllMessages(prev => {
+          const prevLastId = prev.at(-1)?.id;
+          const newLastId = sortedMessages.at(-1)?.id;
+          if (prevLastId === newLastId) return prev;
+          return sortedMessages;
+        });
+
+        setVisibleMessages(prev => {
+          const prevLastId = prev.at(-1)?.id;
+          const newLastId = sortedMessages.at(-1)?.id;
+          if (prevLastId === newLastId) return prev;
+          return sortedMessages.slice(-offsetRef.current);
+        });
+      } catch (err) {
+        console.error('Polling error:', err);
+        if (err instanceof Error && err.message === 'Token tidak valid') {
+          router.push('/login');
+        }
+      }
+    }, 3000);
+
+    return () => clearInterval(pollingInterval);
+  }, [params.sessionId, currentUser]);
 
   const loadMoreMessages = () => {
     const total = allMessages.length;
@@ -106,27 +158,76 @@ export default function ChatSessionPage() {
   };
 
   const handleEditMessage = async (messageId: string, newContent: string) => {
+    setAllMessages(prev => prev.map(m =>
+      m.id === messageId ? { ...m, isEditing: true, error: undefined } : m
+    ));
+    setVisibleMessages(prev => prev.map(m =>
+      m.id === messageId ? { ...m, isEditing: true, error: undefined } : m
+    ));
+
     try {
-      const updatedMessage = await chatService.editMessage(messageId, newContent);
-      
-      setAllMessages(prev => prev.map(m => m.id === messageId ? updatedMessage : m));
-      setVisibleMessages(prev => prev.map(m => m.id === messageId ? updatedMessage : m));
+      const updatedMessage = await chatService.editMessage(
+        messageId,
+        newContent,
+        (state: AjaxState) => {
+          if (state.error) showNotification(state.error, 'error');
+        }
+      );
+
+      setAllMessages(prev => prev.map(m =>
+        m.id === messageId ? { ...updatedMessage, isEditing: false, error: undefined } : m
+      ));
+      setVisibleMessages(prev => prev.map(m =>
+        m.id === messageId ? { ...updatedMessage, isEditing: false, error: undefined } : m
+      ));
+
+      showNotification('Pesan berhasil diedit', 'success');
     } catch (err) {
-      console.error('Error editing message:', err);
-      alert('Gagal mengedit pesan. Silakan coba lagi.');
+      const errorMessage = err instanceof Error ? err.message : 'Gagal mengedit pesan';
+      setAllMessages(prev => prev.map(m =>
+        m.id === messageId ? { ...m, isEditing: false, error: errorMessage } : m
+      ));
+      setVisibleMessages(prev => prev.map(m =>
+        m.id === messageId ? { ...m, isEditing: false, error: errorMessage } : m
+      ));
+      showNotification(errorMessage, 'error');
     }
   };
 
   const handleDeleteMessage = async (messageId: string) => {
+    setAllMessages(prev => prev.map(m =>
+      m.id === messageId ? { ...m, isDeleting: true, error: undefined } : m
+    ));
+    setVisibleMessages(prev => prev.map(m =>
+      m.id === messageId ? { ...m, isDeleting: true, error: undefined } : m
+    ));
+
     try {
-      await chatService.deleteMessage(messageId);
-      
+      await chatService.deleteMessage(
+        messageId,
+        (state: AjaxState) => {
+          if (state.error) showNotification(state.error, 'error');
+        }
+      );
+
       const deletedMessage = { deleted: true, content: 'Pesan telah dihapus' };
-      setAllMessages(prev => prev.map(m => m.id === messageId ? { ...m, ...deletedMessage } : m));
-      setVisibleMessages(prev => prev.map(m => m.id === messageId ? { ...m, ...deletedMessage } : m));
+      setAllMessages(prev => prev.map(m =>
+        m.id === messageId ? { ...m, ...deletedMessage, isDeleting: false } : m
+      ));
+      setVisibleMessages(prev => prev.map(m =>
+        m.id === messageId ? { ...m, ...deletedMessage, isDeleting: false } : m
+      ));
+
+      showNotification('Pesan berhasil dihapus', 'success');
     } catch (err) {
-      console.error('Error deleting message:', err);
-      alert('Gagal menghapus pesan. Silakan coba lagi.');
+      const errorMessage = err instanceof Error ? err.message : 'Gagal menghapus pesan';
+      setAllMessages(prev => prev.map(m =>
+        m.id === messageId ? { ...m, isDeleting: false, error: errorMessage } : m
+      ));
+      setVisibleMessages(prev => prev.map(m =>
+        m.id === messageId ? { ...m, isDeleting: false, error: errorMessage } : m
+      ));
+      showNotification(errorMessage, 'error');
     }
   };
 
@@ -146,6 +247,7 @@ export default function ChatSessionPage() {
       createdAt: new Date().toISOString(),
       edited: false,
       deleted: false,
+      isLoading: true,
     };
 
     setAllMessages(prev => [...prev, tempMessage]);
@@ -156,18 +258,28 @@ export default function ChatSessionPage() {
     });
 
     try {
-      const savedMessage = await chatService.sendMessage(params.sessionId, messageContent);
-      
-      setAllMessages(prev => prev.map(m => m.id === tempId ? savedMessage : m));
-      setVisibleMessages(prev => prev.map(m => m.id === tempId ? savedMessage : m));
+      const savedMessage = await chatService.sendMessage(
+        params.sessionId,
+        messageContent,
+        (state: AjaxState) => {
+          if (state.error) showNotification(state.error, 'error');
+        }
+      );
+
+      setAllMessages(prev => prev.map(m =>
+        m.id === tempId ? { ...savedMessage, isLoading: false } : m
+      ));
+      setVisibleMessages(prev => prev.map(m =>
+        m.id === tempId ? { ...savedMessage, isLoading: false } : m
+      ));
+
+      showNotification('Pesan berhasil dikirim', 'success');
     } catch (err) {
-      console.error('Error sending message:', err);
-      
+      const errorMessage = err instanceof Error ? err.message : 'Gagal mengirim pesan';
       setAllMessages(prev => prev.filter(m => m.id !== tempId));
       setVisibleMessages(prev => prev.filter(m => m.id !== tempId));
-      
       setInput(messageContent);
-      alert('Gagal mengirim pesan. Silakan coba lagi.');
+      showNotification(errorMessage, 'error');
     } finally {
       setSending(false);
     }
@@ -225,6 +337,27 @@ export default function ChatSessionPage() {
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 to-white">
+      {/* Notification Toast */}
+      {notification.show && (
+        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 ${
+          notification.type === 'success' ? 'bg-green-500 text-white' :
+          notification.type === 'error' ? 'bg-red-500 text-white' :
+          'bg-blue-500 text-white'
+        }`}>
+          <div className="flex items-center space-x-2">
+            {notification.type === 'success' && <CheckCircle size={20} />}
+            {notification.type === 'error' && <AlertCircle size={20} />}
+            <span className="font-medium">{notification.message}</span>
+            <button 
+              onClick={() => setNotification(prev => ({ ...prev, show: false }))}
+              className="ml-2 hover:opacity-80"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-white border-b border-blue-100 shadow-sm backdrop-blur-sm">
         <div className="px-6 py-4 flex items-center">

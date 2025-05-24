@@ -10,6 +10,10 @@ export interface ChatMessage {
   editedAt?: string;
   edited: boolean;
   deleted: boolean;
+  isLoading?: boolean;
+  isEditing?: boolean;
+  isDeleting?: boolean;
+  error?: string;
 }
 
 export interface ChatSession {
@@ -31,33 +35,38 @@ interface ApiResponse<T> {
   data: T;
 }
 
+export interface AjaxState {
+  isLoading: boolean;
+  error: string | null;
+}
+
 const chatService = {
   verifyToken: async (): Promise<boolean> => {
-  try {
-    const token = tokenService.getToken();
+    try {
+      const token = tokenService.getToken();
 
-    if (!token || tokenService.isTokenExpired()) {
+      if (!token || tokenService.isTokenExpired()) {
+        tokenService.clearAuth();
+        return false;
+      }
+
+      const response = await chatApi.post('auth/verify', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }).json<ApiResponse<{ valid: boolean }>>();
+
+      if (!response.data.valid) {
+        tokenService.clearAuth();
+      }
+
+      return response.data.valid;
+    } catch (error) {
+      console.error('Token verification failed', error);
       tokenService.clearAuth();
       return false;
     }
-
-    const response = await chatApi.post('auth/verify', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }).json<ApiResponse<{ valid: boolean }>>();
-
-    if (!response.data.valid) {
-      tokenService.clearAuth();
-    }
-
-    return response.data.valid;
-  } catch (error) {
-    console.error('Token verification failed', error);
-    tokenService.clearAuth();
-    return false;
-  }
-},
+  },
 
   getSessions: async (): Promise<ChatSession[]> => {
     const isValid = await chatService.verifyToken();
@@ -113,6 +122,9 @@ const chatService = {
         editedAt: msg.editedAt,
         edited: msg.edited,
         deleted: msg.deleted,
+        isLoading: false,
+        isEditing: false,
+        isDeleting: false,
       }));
     } catch (error) {
       console.error('Failed to get chat messages:', error);
@@ -120,47 +132,77 @@ const chatService = {
     }
   },
 
-  sendMessage: async (sessionId: string, content: string): Promise<ChatMessage> => {
+  sendMessage: async (
+    sessionId: string, 
+    content: string,
+    onProgress?: (state: AjaxState) => void
+  ): Promise<ChatMessage> => {
     const isValid = await chatService.verifyToken();
     if (!isValid) throw new Error('Token tidak valid');
+
+    onProgress?.({ isLoading: true, error: null });
 
     try {
       const response = await chatApi.post('api/chat/send', {
         json: { content, sessionId },
       }).json<ApiResponse<ChatMessage>>();
 
+      onProgress?.({ isLoading: false, error: null });
       return response.data;
     } catch (error) {
       console.error('Failed to send message:', error);
-      throw new Error('Gagal mengirim pesan');
+      const errorMessage = 'Gagal mengirim pesan';
+      
+      onProgress?.({ isLoading: false, error: errorMessage });
+      throw new Error(errorMessage);
     }
   },
 
-  editMessage: async (messageId: string, content: string): Promise<ChatMessage> => {
+  editMessage: async (
+    messageId: string, 
+    content: string,
+    onProgress?: (state: AjaxState) => void
+  ): Promise<ChatMessage> => {
     const isValid = await chatService.verifyToken();
     if (!isValid) throw new Error('Token tidak valid');
+
+    onProgress?.({ isLoading: true, error: null });
 
     try {
       const response = await chatApi.put(`api/chat/message/${messageId}`, {
         json: { content },
       }).json<ApiResponse<ChatMessage>>();
 
+      onProgress?.({ isLoading: false, error: null });
       return response.data;
     } catch (error) {
       console.error('Failed to edit message:', error);
-      throw new Error('Gagal mengedit pesan');
+      const errorMessage = 'Gagal mengedit pesan';
+      
+      onProgress?.({ isLoading: false, error: errorMessage });
+      throw new Error(errorMessage);
     }
   },
 
-  deleteMessage: async (messageId: string): Promise<void> => {
+  deleteMessage: async (
+    messageId: string,
+    onProgress?: (state: AjaxState) => void
+  ): Promise<void> => {
     const isValid = await chatService.verifyToken();
     if (!isValid) throw new Error('Token tidak valid');
 
+    onProgress?.({ isLoading: true, error: null });
+
     try {
       await chatApi.delete(`api/chat/message/${messageId}`);
+      
+      onProgress?.({ isLoading: false, error: null });
     } catch (error) {
       console.error('Failed to delete message:', error);
-      throw new Error('Gagal menghapus pesan');
+      const errorMessage = 'Gagal menghapus pesan';
+      
+      onProgress?.({ isLoading: false, error: errorMessage });
+      throw new Error(errorMessage);
     }
   },
 
@@ -198,7 +240,6 @@ const chatService = {
       throw new Error('Gagal membuat sesi chat');
     }
   }
-
 };
 
 export default chatService;
