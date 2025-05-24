@@ -7,7 +7,7 @@ const API_CONFIG = {
     konsultasi: process.env.NEXT_PUBLIC_KONSULTASI_BASE_URL || 'http://localhost:8081',
     doctorList: process.env.NEXT_PUBLIC_DOCTOR_LIST_BASE_URL || 'http://localhost:8082',
     rating: process.env.NEXT_PUBLIC_RATING_BASE_URL || 'http://localhost:8083',
-    chat: process.env.NEXT_PUBLIC_CHAT_BASE_URL || 'http://localhost:8084',
+    chat: process.env.NEXT_PUBLIC_CHAT_BASE_URL || 'http://localhost:8082',
   },
   verifyEndpoint: 'auth/verify'
 };
