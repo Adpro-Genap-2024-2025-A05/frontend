@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import useAuth from '@/hooks/useAuth';
 import konsultasiService, { KonsultasiResponse } from '@/api/konsultasiApi';
+import ratingService from '@/api/ratingApi';
 import KonsultasiStatusBadge from '@/components/konsultasi/KonsultasiStatusBadge';
 import { 
   ArrowLeft, 
@@ -17,7 +18,8 @@ import {
   RefreshCw,
   Eye,
   History,
-  AlertCircle
+  AlertCircle,
+  Star
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -28,6 +30,7 @@ export default function KonsultasiHistoryPage() {
   
   const [konsultasiList, setKonsultasiList] = useState<KonsultasiResponse[]>([]);
   const [filteredList, setFilteredList] = useState<KonsultasiResponse[]>([]);
+  const [userRatings, setUserRatings] = useState<{[key: string]: any}>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -56,6 +59,9 @@ export default function KonsultasiHistoryPage() {
   useEffect(() => {
     if (user) {
       fetchKonsultasiHistory();
+      if (user.role === 'PACILIAN') {
+        fetchUserRatings();
+      }
     }
   }, [user]);
 
@@ -84,6 +90,21 @@ export default function KonsultasiHistoryPage() {
       setError('Gagal memuat riwayat konsultasi. Silakan coba lagi.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUserRatings = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const ratings = await ratingService.getRatingsByPacilian(user.id);
+      const ratingsMap: {[key: string]: any} = {};
+      ratings.forEach(rating => {
+        ratingsMap[rating.konsultasiId] = rating;
+      });
+      setUserRatings(ratingsMap);
+    } catch (error) {
+      console.error('Error fetching user ratings:', error);
     }
   };
 
@@ -146,6 +167,14 @@ export default function KonsultasiHistoryPage() {
     router.push(`/konsultasi/${id}`);
   };
 
+  const handleRateConsultation = (konsultasiId: string, caregiverId: string) => {
+    router.push(`/rating/create?konsultasiId=${konsultasiId}&caregiverId=${caregiverId}`);
+  };
+
+  const handleEditRating = (ratingId: string) => {
+    router.push(`/rating/${ratingId}/edit`);
+  };
+
   const formatDateTime = (dateTime: string) => {
     return format(new Date(dateTime), 'dd MMM yyyy, HH:mm', { locale: id });
   };
@@ -164,6 +193,25 @@ export default function KonsultasiHistoryPage() {
       cancelled: konsultasiList.filter(k => k.status === 'CANCELLED').length,
     };
     return stats;
+  };
+
+  const canRate = (konsultasi: KonsultasiResponse) => {
+    return user?.role === 'PACILIAN' && 
+           konsultasi.status === 'DONE' && 
+           !userRatings[konsultasi.id];
+  };
+
+  const hasRated = (konsultasiId: string) => {
+    return userRatings[konsultasiId];
+  };
+
+  const renderStars = (rating: number) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <Star
+        key={i}
+        className={`w-4 h-4 ${i < Math.floor(rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+      />
+    ));
   };
 
   const stats = getStatusStats();
@@ -367,68 +415,111 @@ export default function KonsultasiHistoryPage() {
               </div>
 
               <div className="space-y-4">
-                {filteredList.map((konsultasi) => (
-                  <div key={konsultasi.id} className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-                    <div className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-lg font-semibold text-gray-900">
-                              Konsultasi {user?.role === 'CAREGIVER' 
-                                ? konsultasi.pacilianData?.name 
-                                : konsultasi.caregiverData?.name}
-                            </h3>
-                            <KonsultasiStatusBadge status={konsultasi.status} />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
-                          <span>{formatDetailDateTime(konsultasi.scheduleDateTime)}</span>
-                        </div>
-
-                        <div className="flex items-center text-sm text-gray-600">
-                          <User className="w-4 h-4 mr-2 flex-shrink-0" />
-                          <span>
-                            {user?.role === 'PACILIAN'
-                              ? `Dokter: ${konsultasi.caregiverData?.name || 'Dr. [Data tidak tersedia]'}`
-                              : `Pasien: ${konsultasi.pacilianData?.name || 'Pasien [Data tidak tersedia]'}`
-                            }
-                          </span>
-                        </div>
-                      </div>
-
-                      {konsultasi.notes && (
-                        <div className="mb-4">
-                          <div className="flex items-start text-sm text-gray-600">
-                            <FileText className="w-4 h-4 mr-2 flex-shrink-0 mt-0.5" />
-                            <div>
-                              <span className="font-medium">Catatan: </span>
-                              <span className="line-clamp-2">{konsultasi.notes}</span>
+                {filteredList.map((konsultasi) => {
+                  const existingRating = hasRated(konsultasi.id);
+                  
+                  return (
+                    <div key={konsultasi.id} className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                      <div className="p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-2">
+                              <h3 className="text-lg font-semibold text-gray-900">
+                                Konsultasi {user?.role === 'CAREGIVER' 
+                                  ? konsultasi.pacilianData?.name 
+                                  : konsultasi.caregiverData?.name}
+                              </h3>
+                              <KonsultasiStatusBadge status={konsultasi.status} />
                             </div>
                           </div>
                         </div>
-                      )}
 
-                      <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                        <div className="flex items-center text-xs text-gray-500">
-                          <Clock className="w-3 h-3 mr-1" />
-                          <span>Terakhir diupdate: {formatDateTime(konsultasi.lastUpdated)}</span>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                          <div className="flex items-center text-sm text-gray-600">
+                            <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
+                            <span>{formatDetailDateTime(konsultasi.scheduleDateTime)}</span>
+                          </div>
+
+                          <div className="flex items-center text-sm text-gray-600">
+                            <User className="w-4 h-4 mr-2 flex-shrink-0" />
+                            <span>
+                              {user?.role === 'PACILIAN'
+                                ? `Dokter: ${konsultasi.caregiverData?.name || 'Dr. [Data tidak tersedia]'}`
+                                : `Pasien: ${konsultasi.pacilianData?.name || 'Pasien [Data tidak tersedia]'}`
+                              }
+                            </span>
+                          </div>
                         </div>
-                        
-                        <button
-                          onClick={() => handleViewDetail(konsultasi.id)}
-                          className="flex items-center px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition"
-                        >
-                          <Eye className="w-4 h-4 mr-1" />
-                          Lihat Detail
-                        </button>
+
+                        {konsultasi.notes && (
+                          <div className="mb-4">
+                            <div className="flex items-start text-sm text-gray-600">
+                              <FileText className="w-4 h-4 mr-2 flex-shrink-0 mt-0.5" />
+                              <div>
+                                <span className="font-medium">Catatan: </span>
+                                <span className="line-clamp-2">{konsultasi.notes}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Rating Display */}
+                        {existingRating && (
+                          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <div className="flex items-center mr-3">
+                                  {renderStars(existingRating.rating)}
+                                </div>
+                                <span className="text-sm text-gray-600">
+                                  Rating Anda: {existingRating.rating}/5
+                                </span>
+                              </div>
+                              <button
+                                onClick={() => handleEditRating(existingRating.id)}
+                                className="text-xs text-blue-600 hover:text-blue-700"
+                              >
+                                Edit Rating
+                              </button>
+                            </div>
+                            {existingRating.review && (
+                              <p className="text-sm text-gray-600 mt-2 line-clamp-2">
+                                "{existingRating.review}"
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                          <div className="flex items-center text-xs text-gray-500">
+                            <Clock className="w-3 h-3 mr-1" />
+                            <span>Terakhir diupdate: {formatDateTime(konsultasi.lastUpdated)}</span>
+                          </div>
+                          
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleViewDetail(konsultasi.id)}
+                              className="flex items-center px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition"
+                            >
+                              <Eye className="w-4 h-4 mr-1" />
+                              Lihat Detail
+                            </button>
+
+                            {canRate(konsultasi) && (
+                              <button
+                                onClick={() => handleRateConsultation(konsultasi.id, konsultasi.caregiverId)}
+                                className="flex items-center px-3 py-2 text-sm font-medium text-white bg-yellow-500 rounded-md hover:bg-yellow-600 transition"
+                              >
+                                <Star className="w-4 h-4 mr-1" />
+                                Beri Rating
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           )}

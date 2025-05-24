@@ -1,5 +1,4 @@
-import { ratingApi } from '@/middleware/apiMiddleware';
-import tokenService from '@/services/tokenService';
+import { ratingApi as api } from '@/middleware/apiMiddleware';
 
 interface ApiResponse<T> {
   status: number;
@@ -8,18 +7,111 @@ interface ApiResponse<T> {
   data: T;
 }
 
+export interface Rating {
+  id: string;
+  rating: number;
+  konsultasiId: string;
+  review?: string;
+  createdAt: string;
+  updatedAt: string;
+  pacilianId: string;
+  caregiverId: string;
+  pacilianName: string;
+}
+
+export interface CaregiverRatingStats {
+  caregiverId: string;
+  averageRating: number;
+  totalRatings: number;
+  ratings: Rating[];
+}
+
+export interface CreateRatingRequest {
+  rating: number;
+  review?: string;
+  konsultasiId: string;
+}
+
+export interface UpdateRatingRequest {
+  rating: number;
+  review?: string;
+}
+
 const ratingService = {
-  getRatings: async () => {
+  createRating: async (data: CreateRatingRequest): Promise<Rating> => {
     try {
-      const response = await ratingApi.get('ratings').json<ApiResponse<any>>();
+      const response = await api.post('rating', {
+        json: data
+      }).json<ApiResponse<Rating>>();
+      
       return response.data;
     } catch (error) {
-      console.error('Failed to fetch ratings', error);
+      console.error('Failed to create rating', error);
       throw error;
     }
   },
-  
-  // Rating Kalo butuh
+
+  updateRating: async (ratingId: string, data: UpdateRatingRequest): Promise<Rating> => {
+    try {
+      const response = await api.put(`rating/${ratingId}`, {
+        json: data
+      }).json<ApiResponse<Rating>>();
+      
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update rating', error);
+      throw error;
+    }
+  },
+
+  deleteRating: async (ratingId: string): Promise<void> => {
+    try {
+      await api.delete(`rating/${ratingId}`).json<ApiResponse<null>>();
+    } catch (error) {
+      console.error('Failed to delete rating', error);
+      throw error;
+    }
+  },
+
+  getRatingById: async (ratingId: string): Promise<Rating> => {
+    try {
+      const response = await api.get(`rating/${ratingId}`).json<ApiResponse<Rating>>();
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch rating', error);
+      throw error;
+    }
+  },
+
+  getRatingsByPacilian: async (pacilianId: string): Promise<Rating[]> => {
+    try {
+      const response = await api.get(`rating/pacilian/${pacilianId}`).json<ApiResponse<Rating[]>>();
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch pacilian ratings', error);
+      throw error;
+    }
+  },
+
+  getRatingsByCaregiver: async (caregiverId: string): Promise<Rating[]> => {
+    try {
+      const response = await api.get(`rating/caregiver/${caregiverId}`).json<ApiResponse<Rating[]>>();
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch caregiver ratings', error);
+      throw error;
+    }
+  },
+
+  getCaregiverRatingStats: async (caregiverId: string): Promise<CaregiverRatingStats> => {
+    try {
+      const response = await api.get(`rating/caregiver/${caregiverId}/stats`).json<ApiResponse<CaregiverRatingStats>>();
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch caregiver rating stats', error);
+      throw error;
+    }
+  }
 };
 
 export default ratingService;
