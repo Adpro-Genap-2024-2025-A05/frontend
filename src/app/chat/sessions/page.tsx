@@ -157,14 +157,19 @@ export default function ChatSessionsPage() {
               )}
             </div>
 
-            {/* Session Cards */}
-            {filteredSessions.map((session) => (
+            {[...filteredSessions]
+            .sort((a, b) => {
+              const dateA = new Date(a.lastMessage?.createdAt ?? a.updatedAt).getTime();
+              const dateB = new Date(b.lastMessage?.createdAt ?? b.updatedAt).getTime();
+              return dateB - dateA; 
+            })
+            .map((session) => (
               <ChatSessionCard
                 key={session.id}
                 session={session}
                 onClick={() => handleSessionClick(session.id)}
               />
-            ))}
+          ))}
           </div>
         )}
       </div>
