@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -8,7 +8,7 @@ import konsultasiService, { CreateKonsultasiDto, Schedule } from '@/api/konsulta
 import doctorListService, { Doctor } from '@/api/doctorListApi';
 import { ArrowLeft, Search, Calendar, Clock, User, FileText, AlertCircle } from 'lucide-react';
 
-export default function CreateKonsultasiPage() {
+function CreateKonsultasiContent() {
   const router = useRouter();
   
   const [currentStep, setCurrentStep] = useState(1);
@@ -470,5 +470,24 @@ export default function CreateKonsultasiPage() {
         </div>
       </div>
     </ProtectedRoute>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">Memuat...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function CreateKonsultasiPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <CreateKonsultasiContent />
+    </Suspense>
   );
 }
