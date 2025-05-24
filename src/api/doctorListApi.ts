@@ -27,7 +27,7 @@ export interface Doctor {
   phoneNumber: string;
   description: string;
   rating: number;
-  totalReviews: number;
+  totalRatings: number;
   workingSchedules: Schedule[];
 }
 
@@ -91,6 +91,8 @@ const doctorListService = {
       const endpoint = queryString ? `doctor/search?${queryString}` : 'doctor/search';
       
       const response = await doctorListApi.get(endpoint).json<ApiResponse<PaginatedResponse<Doctor>>>();
+      console.log('Response:', response);
+      console.log('Response data:', response.data);
       return response.data;
     } catch (error) {
       console.error('Failed to search doctors', error);

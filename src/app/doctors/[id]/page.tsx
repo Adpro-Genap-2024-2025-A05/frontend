@@ -239,7 +239,7 @@ export default function DoctorDetailPage() {
                     <div className="flex items-center mb-4">
                       <div className="flex">{renderStars(ratingStats?.averageRating || doctor.rating)}</div>
                       <span className="ml-3 text-sm text-gray-600">
-                        {(ratingStats?.averageRating || doctor.rating).toFixed(1)} ({ratingStats?.totalRatings || doctor.totalReviews} ulasan)
+                        {(ratingStats?.averageRating || doctor.rating).toFixed(1)} ({ratingStats?.totalRatings || doctor.totalRatings} ulasan)
                       </span>
                     </div>
                     <p className="text-gray-600">{doctor.description}</p>
@@ -447,7 +447,7 @@ export default function DoctorDetailPage() {
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Total Ulasan:</span>
                         <span className="font-medium">
-                          {ratingStats?.totalRatings || doctor.totalReviews}
+                          {ratingStats?.totalRatings || doctor.totalRatings}
                         </span>
                       </div>
                       <div className="flex justify-between text-sm">

@@ -319,7 +319,7 @@ export default function DoctorsPage() {
                       <div className="flex items-center">
                         <div className="flex">{renderStars(doctor.rating)}</div>
                         <span className="ml-2 text-sm text-gray-600">
-                          ({doctor.totalReviews})
+                          ({doctor.totalRatings})
                         </span>
                       </div>
                     </div>
