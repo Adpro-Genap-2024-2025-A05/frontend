@@ -54,7 +54,6 @@ export default function ProfilePage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -195,18 +194,6 @@ export default function ProfilePage() {
     }
   };
 
-  const handleDeleteAccount = async () => {
-    try {
-      setIsSaving(true);
-      await profileService.deleteAccount();
-      localStorage.removeItem('token');
-      router.push('/login');
-    } catch (error: any) {
-      setError(error.message || 'Gagal menghapus akun');
-      console.error('Error deleting account:', error);
-      setIsSaving(false);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -499,13 +486,6 @@ export default function ProfilePage() {
                 >
                   Ubah Password
                 </button>
-                <button
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="px-4 py-2 bg-red-400 text-white rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  <Trash2 className="w-4 h-4 inline mr-2" />
-                  Hapus Akun
-                </button>
               </div>
             ) : (
               <div className="space-y-4">
@@ -593,36 +573,7 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {/* Delete Confirmation Modal */}
-          {showDeleteConfirm && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-                <div className="flex items-center mb-4">
-                  <Trash2 className="w-6 h-6 text-red-400 mr-2" />
-                  <h3 className="text-lg font-semibold text-gray-900">Konfirmasi Hapus Akun</h3>
-                </div>
-                <p className="text-gray-400 mb-6">
-                  Apakah Anda yakin ingin menghapus akun? Tindakan ini tidak dapat dibatalkan dan semua data Anda akan dihapus secara permanen.
-                </p>
-                <div className="flex space-x-3">
-                  <button
-                    onClick={handleDeleteAccount}
-                    disabled={isSaving}
-                    className="flex-1 px-4 py-2 bg-red-400 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
-                  >
-                    {isSaving ? 'Menghapus...' : 'Ya, Hapus Akun'}
-                  </button>
-                  <button
-                    onClick={() => setShowDeleteConfirm(false)}
-                    disabled={isSaving}
-                    className="flex-1 px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
-                  >
-                    Batal
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          
         </div>
       </div>
     </ProtectedRoute>

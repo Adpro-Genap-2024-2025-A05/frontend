@@ -106,13 +106,6 @@ export default function LoginForm() {
             }}
           />
         </div>
-
-        <div className="flex items-center justify-between pt-2">
-          <a href="/forgot-password" className="text-sm font-medium text-blue-400 hover:text-blue-500">
-            Forgot password?
-          </a>
-        </div>
-
         <button
           onClick={handleSubmit}
           disabled={isSubmitting}

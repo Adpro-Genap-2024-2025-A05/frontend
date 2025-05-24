@@ -120,15 +120,6 @@ const authService = {
     }
   },
 
-  deleteAccount: async (): Promise<void> => {
-    try {
-      await api.delete('profile').json<ApiResponse<void>>();
-    } catch (error) {
-      console.error('Failed to delete account', error);
-      throw error;
-    }
-  },
-
   changePassword: async (passwordData: PasswordChangeRequest): Promise<void> => {
     try {
       await api.post('profile/change-password', { json: passwordData }).json<ApiResponse<void>>();
