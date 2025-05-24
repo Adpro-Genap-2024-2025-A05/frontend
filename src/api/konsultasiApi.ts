@@ -141,7 +141,7 @@ const konsultasiService = {
 
   rescheduleKonsultasi: async (konsultasiId: string, data: RescheduleKonsultasiDto): Promise<KonsultasiResponse> => {
     try {
-      const response = await api.post(`api/konsultasi/${konsultasiId}/reschedule`, {
+      const response = await api.patch(`api/konsultasi/${konsultasiId}/reschedule`, {
         json: data
       }).json<ApiResponse<KonsultasiResponse>>();
       
