@@ -79,7 +79,7 @@ export interface Schedule {
 const konsultasiService = {
   createKonsultasi: async (data: CreateKonsultasiDto): Promise<KonsultasiResponse> => {
     try {
-      const response = await api.post('konsultasi', {
+      const response = await api.post('api/konsultasi', {
         json: data
       }).json<ApiResponse<KonsultasiResponse>>();
       
@@ -92,7 +92,7 @@ const konsultasiService = {
 
   updateKonsultasiRequest: async (konsultasiId: string, data: UpdateKonsultasiRequestDto): Promise<KonsultasiResponse> => {
     try {
-      const response = await api.put(`konsultasi/${konsultasiId}/update-request`, {
+      const response = await api.put(`api/konsultasi/${konsultasiId}/update-request`, {
         json: data
       }).json<ApiResponse<KonsultasiResponse>>();
       
@@ -105,7 +105,7 @@ const konsultasiService = {
 
   confirmKonsultasi: async (konsultasiId: string): Promise<KonsultasiResponse> => {
     try {
-      const response = await api.post(`konsultasi/${konsultasiId}/confirm`, {})
+      const response = await api.post(`api/konsultasi/${konsultasiId}/confirm`, {})
         .json<ApiResponse<KonsultasiResponse>>();
       
       return response.data;
@@ -117,7 +117,7 @@ const konsultasiService = {
 
   cancelKonsultasi: async (konsultasiId: string): Promise<KonsultasiResponse> => {
     try {
-      const response = await api.post(`konsultasi/${konsultasiId}/cancel`, {})
+      const response = await api.post(`api/konsultasi/${konsultasiId}/cancel`, {})
         .json<ApiResponse<KonsultasiResponse>>();
       
       return response.data;
@@ -129,7 +129,7 @@ const konsultasiService = {
 
   completeKonsultasi: async (konsultasiId: string): Promise<KonsultasiResponse> => {
     try {
-      const response = await api.post(`konsultasi/${konsultasiId}/complete`, {})
+      const response = await api.post(`api/konsultasi/${konsultasiId}/complete`, {})
         .json<ApiResponse<KonsultasiResponse>>();
       
       return response.data;
@@ -141,7 +141,7 @@ const konsultasiService = {
 
   rescheduleKonsultasi: async (konsultasiId: string, data: RescheduleKonsultasiDto): Promise<KonsultasiResponse> => {
     try {
-      const response = await api.post(`konsultasi/${konsultasiId}/reschedule`, {
+      const response = await api.post(`api/konsultasi/${konsultasiId}/reschedule`, {
         json: data
       }).json<ApiResponse<KonsultasiResponse>>();
       
@@ -154,7 +154,7 @@ const konsultasiService = {
 
   acceptReschedule: async (konsultasiId: string): Promise<KonsultasiResponse> => {
     try {
-      const response = await api.post(`konsultasi/${konsultasiId}/accept-reschedule`, {})
+      const response = await api.post(`api/konsultasi/${konsultasiId}/accept-reschedule`, {})
         .json<ApiResponse<KonsultasiResponse>>();
       
       return response.data;
@@ -166,7 +166,7 @@ const konsultasiService = {
 
   rejectReschedule: async (konsultasiId: string): Promise<KonsultasiResponse> => {
     try {
-      const response = await api.post(`konsultasi/${konsultasiId}/reject-reschedule`, {})
+      const response = await api.post(`api/konsultasi/${konsultasiId}/reject-reschedule`, {})
         .json<ApiResponse<KonsultasiResponse>>();
       
       return response.data;
@@ -178,7 +178,7 @@ const konsultasiService = {
 
   getKonsultasiById: async (konsultasiId: string, role: string): Promise<KonsultasiResponse> => {
     try {
-      const response = await api.get(`konsultasi/${konsultasiId}`)
+      const response = await api.get(`api/konsultasi/${konsultasiId}`)
         .json<ApiResponse<KonsultasiResponse>>();
       
       return response.data;
@@ -190,7 +190,7 @@ const konsultasiService = {
 
   getPacilianKonsultasi: async (): Promise<KonsultasiResponse[]> => {
     try {
-      const response = await api.get('konsultasi/pacilian')
+      const response = await api.get('api/konsultasi/pacilian')
         .json<ApiResponse<KonsultasiResponse[]>>();
       
       return response.data;
@@ -202,7 +202,7 @@ const konsultasiService = {
 
   getCaregiverKonsultasi: async (): Promise<KonsultasiResponse[]> => {
     try {
-      const response = await api.get('konsultasi/caregiver')
+      const response = await api.get('api/konsultasi/caregiver')
         .json<ApiResponse<KonsultasiResponse[]>>();
       
       return response.data;
@@ -214,7 +214,7 @@ const konsultasiService = {
 
   getRequestedKonsultasi: async (): Promise<KonsultasiResponse[]> => {
     try {
-      const response = await api.get('konsultasi/caregiver/requested')
+      const response = await api.get('api/konsultasi/caregiver/requested')
         .json<ApiResponse<KonsultasiResponse[]>>();
       
       return response.data;
@@ -226,7 +226,7 @@ const konsultasiService = {
 
   createSchedule: async (scheduleData: any): Promise<Schedule> => {
     try {
-      const response = await api.post('schedule/caregiver', {
+      const response = await api.post('api/schedule/caregiver', {
         json: scheduleData
       }).json<ApiResponse<Schedule>>();
       
@@ -239,7 +239,7 @@ const konsultasiService = {
   
   createOneTimeSchedule: async (scheduleData: any): Promise<Schedule> => {
     try {
-      const response = await api.post('schedule/caregiver/one-time', {
+      const response = await api.post('api/schedule/caregiver/one-time', {
         json: scheduleData
       }).json<ApiResponse<Schedule>>();
       
@@ -252,7 +252,7 @@ const konsultasiService = {
   
   getCaregiverSchedules: async (): Promise<Schedule[]> => {
     try {
-      const response = await api.get('schedule/caregiver').json<ApiResponse<Schedule[]>>();
+      const response = await api.get('api/schedule/caregiver').json<ApiResponse<Schedule[]>>();
       return response.data;
     } catch (error) {
       console.error('Failed to get caregiver schedules', error);
@@ -262,7 +262,7 @@ const konsultasiService = {
 
   getCaregiverSchedulesById: async (caregiverId: string): Promise<Schedule[]> => {
     try {
-      const response = await api.get(`schedule/caregiver/${caregiverId}`)
+      const response = await api.get(`api/schedule/caregiver/${caregiverId}`)
         .json<ApiResponse<Schedule[]>>();
       return response.data;
     } catch (error) {
@@ -273,7 +273,7 @@ const konsultasiService = {
   
   deleteSchedule: async (scheduleId: string): Promise<void> => {
     try {
-      await api.delete(`schedule/caregiver/${scheduleId}`).json<ApiResponse<null>>();
+      await api.delete(`api/schedule/caregiver/${scheduleId}`).json<ApiResponse<null>>();
     } catch (error) {
       console.error('Failed to delete schedule', error);
       throw error;
@@ -282,7 +282,7 @@ const konsultasiService = {
   
   updateSchedule: async (scheduleId: string, scheduleData: any): Promise<Schedule> => {
     try {
-      const response = await api.put(`schedule/caregiver/${scheduleId}`, {
+      const response = await api.put(`api/schedule/caregiver/${scheduleId}`, {
         json: scheduleData
       }).json<ApiResponse<Schedule>>();
       
@@ -295,7 +295,7 @@ const konsultasiService = {
   
   getAvailableTimes: async (scheduleId: string, weeksAhead: number = 4): Promise<string[]> => {
     try {
-      const response = await api.get(`schedule/${scheduleId}/available?weeksAhead=${weeksAhead}`)
+      const response = await api.get(`api/schedule/${scheduleId}/available?weeksAhead=${weeksAhead}`)
         .json<ApiResponse<string[]>>();
       
       return response.data;
@@ -307,7 +307,7 @@ const konsultasiService = {
   
   checkAvailability: async (scheduleId: string, dateTime: string): Promise<boolean> => {
     try {
-      const response = await api.get(`schedule/${scheduleId}/check-availability?dateTime=${dateTime}`)
+      const response = await api.get(`api/schedule/${scheduleId}/check-availability?dateTime=${dateTime}`)
         .json<ApiResponse<boolean>>();
       
       return response.data;
