@@ -3,11 +3,11 @@ import tokenService from '@/services/tokenService';
 
 const API_CONFIG = {
   baseUrls: {
-    auth: process.env.NEXT_PUBLIC_AUTH_BASE_URL || 'http://localhost:8080',
-    konsultasi: process.env.NEXT_PUBLIC_KONSULTASI_BASE_URL || 'http://localhost:8081',
-    doctorList: process.env.NEXT_PUBLIC_DOCTOR_LIST_BASE_URL || 'http://localhost:8082',
-    rating: process.env.NEXT_PUBLIC_RATING_BASE_URL || 'http://localhost:8083',
-    chat: process.env.NEXT_PUBLIC_CHAT_BASE_URL || 'http://localhost:8084',
+    auth: process.env.NEXT_PUBLIC_AUTH_BASE_URL || 'http://54.242.243.198/api',
+    konsultasi: process.env.NEXT_PUBLIC_KONSULTASI_BASE_URL || 'http://52.202.150.103/api',
+    doctorList: process.env.NEXT_PUBLIC_DOCTOR_LIST_BASE_URL || 'http://34.225.152.182/api',
+    rating: process.env.NEXT_PUBLIC_RATING_BASE_URL || 'http://107.20.6.214/api',
+    chat: process.env.NEXT_PUBLIC_CHAT_BASE_URL || 'http://54.158.239.145/api',
   },
   verifyEndpoint: 'auth/verify'
 };
