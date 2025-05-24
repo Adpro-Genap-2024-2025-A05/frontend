@@ -19,6 +19,38 @@ export default function RegistrationForm() {
     speciality: "",
     workAddress: "",
   });
+  const SPECIALITY_ENUMS: { value: string; label: string }[] = [
+    { value: "Dokter Umum", label: "Dokter Umum" },
+    { value: "Spesialis Anak", label: "Spesialis Anak" },
+    { value: "Spesialis Kulit", label: "Spesialis Kulit" },
+    { value: "Spesialis Penyakit Dalam", label: "Spesialis Penyakit Dalam" },
+    { value: "Spesialis THT", label: "Spesialis THT" },
+    { value: "Spesialis Kandungan", label: "Spesialis Kandungan" },
+    { value: "Kesehatan Paru", label: "Kesehatan Paru" },
+    { value: "Psikiater", label: "Psikiater" },
+    { value: "Dokter Hewan", label: "Dokter Hewan" },
+    { value: "Psikolog Klinis", label: "Psikolog Klinis" },
+    { value: "Spesialis Mata", label: "Spesialis Mata" },
+    { value: "Seksologi & Spesialis Reproduksi Pria", label: "Seksologi & Spesialis Reproduksi Pria" },
+    { value: "Spesialis Gizi Klinik", label: "Spesialis Gizi Klinik" },
+    { value: "Dokter Gigi", label: "Dokter Gigi" },
+    { value: "Spesialis Saraf", label: "Spesialis Saraf" },
+    { value: "Spesialis Bedah", label: "Spesialis Bedah" },
+    { value: "Perawatan Rambut", label: "Perawatan Rambut" },
+    { value: "Bidanku", label: "Bidanku" },
+    { value: "Spesialis Jantung", label: "Spesialis Jantung" },
+    { value: "Talk Therapy Clinic", label: "Talk Therapy Clinic" },
+    { value: "Dokter Konsulen", label: "Dokter Konsulen" },
+    { value: "Laktasi", label: "Laktasi" },
+    { value: "Program Hamil", label: "Program Hamil" },
+    { value: "Fisioterapi & Rehabilitasi", label: "Fisioterapi & Rehabilitasi" },
+    { value: "Medikolegal & Hukum Kesehatan", label: "Medikolegal & Hukum Kesehatan" },
+    { value: "Pemeriksaan Lab", label: "Pemeriksaan Lab" },
+    { value: "Layanan Kontrasepsi", label: "Layanan Kontrasepsi" },
+    { value: "Spesialisasi Lainnya", label: "Spesialisasi Lainnya" },
+  ];
+
+
 
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,23 +81,25 @@ export default function RegistrationForm() {
     if (!form.phoneNumber.match(/^\d{10,13}$/)) {
       errors.push("Nomor telepon harus 10–13 digit.");
     }
-    if (!form.address.trim()) {
-      errors.push("Alamat wajib diisi.");
-    }
   
     if (form.role === "PACILIAN") {
+      if (!form.address.trim()) {
+        errors.push("Alamat wajib diisi.");
+      }
       if (!form.medicalHistory.trim()) {
         errors.push("Riwayat medis wajib diisi.");
       }
     } else if (form.role === "CAREGIVER") {
-      if (!form.speciality.trim()) {
-        errors.push("Spesialisasi wajib diisi.");
+      if (!form.speciality) {
+        errors.push("Spesialisasi wajib dipilih.");
+      }
+      if (!form.address.trim()) {
+        errors.push("Alamat rumah wajib diisi.");
       }
       if (!form.workAddress.trim()) {
         errors.push("Alamat tempat kerja wajib diisi.");
       }
     }
-  
     return errors;
   };  
 
@@ -101,9 +135,9 @@ export default function RegistrationForm() {
         password: form.password,
         nik: form.nik,
         address: form.address,
+        workAddress: form.workAddress,
         phoneNumber: form.phoneNumber,
-        speciality: form.speciality,
-        workAddress: form.workAddress
+        speciality: form.speciality, 
       };      
     }
   
@@ -227,19 +261,21 @@ export default function RegistrationForm() {
               placeholder="08123456789"
             />
           </div>
-  
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-600 mb-2">Address</label>
-            <input
-              type="text"
-              name="address"
-              value={form.address}
-              onChange={handleChange}
-              className="block w-full rounded-md border border-gray-300 shadow-sm px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-              placeholder="Full address"
-            />
           </div>
-        </div>
+  
+          {form.role === "PACILIAN" && (
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-600 mb-2">Address</label>
+              <input
+                type="text"
+                name="address"
+                value={form.address}
+                onChange={handleChange}
+                className="block w-full rounded-md border border-gray-300 shadow-sm px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                placeholder="Full address"
+              />
+            </div>
+          )}
   
         {form.role === "PACILIAN" && (
           <div>
@@ -256,18 +292,23 @@ export default function RegistrationForm() {
         )}
   
         {form.role === "CAREGIVER" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2">Speciality</label>
-              <input
-                type="text"
-                name="speciality"
-                value={form.speciality}
-                onChange={handleChange}
-                className="block w-full rounded-md border border-gray-300 shadow-sm px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                placeholder="e.g. Cardiologist, Nurse, Pharmacist"
-              />
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-2">Speciality</label>
+            <select
+              name="speciality"
+              value={form.speciality}
+              onChange={handleChange}
+              className="block w-full rounded-md border border-gray-300 shadow-sm px-4 py-3 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+            >
+              <option value="">-- Select Speciality --</option>
+              {SPECIALITY_ENUMS.map((spec) => (
+                <option key={spec.value} value={spec.value}>
+                  {spec.label}
+                </option>
+              ))}
+            </select>
+          </div>
   
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-2">Work Address</label>
@@ -278,6 +319,17 @@ export default function RegistrationForm() {
                 onChange={handleChange}
                 className="block w-full rounded-md border border-gray-300 shadow-sm px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
                 placeholder="Hospital/Clinic Address"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-2">Address</label>
+              <input
+                type="text"
+                name="address"
+                value={form.address}
+                onChange={handleChange}
+                className="block w-full rounded-md border border-gray-300 shadow-sm px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                placeholder="Full address"
               />
             </div>
           </div>

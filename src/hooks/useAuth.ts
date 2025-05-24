@@ -29,13 +29,7 @@ export default function useAuth() {
       const storedUser = tokenService.getUser();
       
       if (storedUser) {
-        const isValid = await authService.isAuthenticated();
-        if (isValid) {
-          setUser(storedUser);
-        } else {
-          tokenService.clearAuth();
-          setUser(null);
-        }
+        setUser(storedUser);
       }
       
       setIsLoading(false);
