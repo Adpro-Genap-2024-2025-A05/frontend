@@ -140,21 +140,55 @@ export default function DoctorDetailPage() {
   const groupSchedulesByDay = () => {
     if (!doctor?.workingSchedules) return {};
     
-    const grouped: { [key: string]: any[] } = {};
+    const recurringSchedules: { [key: string]: any[] } = {};
+    const oneTimeSchedules: { [key: string]: any[] } = {};
+
+    const timeToMinutes = (timeStr: string) => {
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      return hours * 60 + minutes;
+    };
+
+    const sortSchedulesByTime = (schedules: any[]) => {
+      return schedules.sort((a, b) => {
+        const timeA = timeToMinutes(a.startTime);
+        const timeB = timeToMinutes(b.startTime);
+        return timeA - timeB;
+      });
+    };
     
     doctor.workingSchedules.forEach(schedule => {
       if (schedule.oneTime) {
         const dateKey = `One-time: ${schedule.specificDate}`;
-        if (!grouped[dateKey]) grouped[dateKey] = [];
-        grouped[dateKey].push(schedule);
+        if (!oneTimeSchedules[dateKey]) oneTimeSchedules[dateKey] = [];
+        oneTimeSchedules[dateKey].push(schedule);
       } else {
         const dayKey = schedule.day;
-        if (!grouped[dayKey]) grouped[dayKey] = [];
-        grouped[dayKey].push(schedule);
+        if (!recurringSchedules[dayKey]) recurringSchedules[dayKey] = [];
+        recurringSchedules[dayKey].push(schedule);
       }
     });
+
+    const dayOrder = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+
+    const orderedSchedules: { [key: string]: any[] } = {};
+   
+    dayOrder.forEach(day => {
+      if (recurringSchedules[day]) {
+        orderedSchedules[day] = sortSchedulesByTime(recurringSchedules[day]);
+      }
+    });
+
+    const sortedOneTimeKeys = Object.keys(oneTimeSchedules).sort((a, b) => {
+      const dateA = a.replace('One-time: ', '');
+      const dateB = b.replace('One-time: ', '');
+      return new Date(dateA).getTime() - new Date(dateB).getTime();
+    });
     
-    return grouped;
+    sortedOneTimeKeys.forEach(key => {
+      orderedSchedules[key] = sortSchedulesByTime(oneTimeSchedules[key]);
+    });
+    
+    return orderedSchedules;
   };
 
   const displayedRatings = showAllRatings ? ratings : ratings.slice(0, 3);
