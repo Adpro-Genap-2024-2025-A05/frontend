@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import konsultasiService, { CreateKonsultasiDto, Schedule } from '@/api/konsultasiApi';
@@ -17,7 +18,12 @@ export default function CreateKonsultasiPage() {
   const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
   const [selectedDateTime, setSelectedDateTime] = useState<string>('');
   const [notes, setNotes] = useState('');
-  
+
+  const searchParams = useSearchParams();
+  const preSelectedDoctorId = searchParams.get('doctorId');
+  const preSelectedDoctorName = searchParams.get('doctorName');
+  const preSelectedSpeciality = searchParams.get('speciality');
+
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,8 +39,28 @@ export default function CreateKonsultasiPage() {
   const [timeLoading, setTimeLoading] = useState(false);
 
   useEffect(() => {
-    fetchDoctors();
-  }, []);
+    if (preSelectedDoctorId && preSelectedDoctorName && preSelectedSpeciality) {
+      const preSelectedDoctor: Doctor = {
+        id: preSelectedDoctorId,
+        caregiverId: preSelectedDoctorId,
+        name: decodeURIComponent(preSelectedDoctorName),
+        speciality: decodeURIComponent(preSelectedSpeciality),
+        email: '',
+        workAddress: '',
+        phoneNumber: '',
+        description: '',
+        rating: 0,
+        totalRatings: 0,
+        workingSchedules: []
+      };
+      
+      setSelectedDoctor(preSelectedDoctor);
+      fetchSchedules(preSelectedDoctorId);
+      setCurrentStep(2); 
+    } else {
+      fetchDoctors();
+    }
+  }, [preSelectedDoctorId, preSelectedDoctorName, preSelectedSpeciality]);
 
   const fetchDoctors = async () => {
     setDoctorLoading(true);
@@ -230,7 +256,7 @@ export default function CreateKonsultasiPage() {
               <div className="flex items-center mt-2">
                 <span className="text-yellow-400">★</span>
                 <span className="text-sm text-gray-600 ml-1">
-                  {doctor.rating.toFixed(1)} ({doctor.totalReviews} ulasan)
+                  {doctor.rating.toFixed(1)} ({doctor.totalRatings} ulasan)
                 </span>
               </div>
             </div>

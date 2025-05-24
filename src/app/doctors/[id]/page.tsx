@@ -106,7 +106,8 @@ export default function DoctorDetailPage() {
   };
 
   const handleBookConsultation = () => {  
-    router.push('/konsultasi/create');
+    if (!doctor) return;
+    router.push(`/konsultasi/create?doctorId=${doctor.id}&doctorName=${encodeURIComponent(doctor.name)}&speciality=${encodeURIComponent(doctor.speciality)}`);
   };
 
   const formatScheduleTime = (schedule: any) => {
