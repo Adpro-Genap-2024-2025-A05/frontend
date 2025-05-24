@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import doctorListService, { Doctor } from '@/api/doctorListApi';
+import chatService from '@/api/chatApi';
 import ratingService from '@/api/ratingApi';
 import { 
   ArrowLeft, 
@@ -69,7 +70,6 @@ export default function DoctorDetailPage() {
       setRatingStats(statsData);
     } catch (error) {
       console.error('Error fetching ratings:', error);
-      // Don't set error for ratings, just log it
     } finally {
       setRatingsLoading(false);
     }
@@ -80,20 +80,10 @@ export default function DoctorDetailPage() {
     
     setCreatingChat(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_CHAT_BASE_URL}/chat/session/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          caregiver: doctor.id
-        })
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        router.push(`/chat/sessions/${result.data.id || result.sessionId}`);
+      const session = await chatService.createSession(doctor.id);
+      
+      if (session?.id) {
+        router.push(`/chat/session/create/${session.id}`);
       } else {
         throw new Error('Failed to create chat session');
       }
@@ -104,18 +94,17 @@ export default function DoctorDetailPage() {
       setCreatingChat(false);
     }
   };
+    const handleBookConsultation = () => {  
+      if (!doctor) return;
+      router.push(`/konsultasi/create?doctorId=${doctor.id}&doctorName=${encodeURIComponent(doctor.name)}&speciality=${encodeURIComponent(doctor.speciality)}`);
+    };
 
-  const handleBookConsultation = () => {  
-    if (!doctor) return;
-    router.push(`/konsultasi/create?doctorId=${doctor.id}&doctorName=${encodeURIComponent(doctor.name)}&speciality=${encodeURIComponent(doctor.speciality)}`);
-  };
-
-  const formatScheduleTime = (schedule: any) => {
-    if (schedule.oneTime && schedule.specificDate) {
-      return `${new Date(schedule.specificDate).toLocaleDateString('id-ID')} ${schedule.startTime}-${schedule.endTime}`;
-    }
-    return `${schedule.startTime}-${schedule.endTime}`;
-  };
+    const formatScheduleTime = (schedule: any) => {
+      if (schedule.oneTime && schedule.specificDate) {
+        return `${new Date(schedule.specificDate).toLocaleDateString('id-ID')} ${schedule.startTime}-${schedule.endTime}`;
+      }
+      return `${schedule.startTime}-${schedule.endTime}`;
+    };
 
   const formatDayName = (day: string) => {
     const dayNames: { [key: string]: string } = {

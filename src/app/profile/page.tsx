@@ -255,8 +255,8 @@ export default function ProfilePage() {
               </div>
               <div className="flex space-x-3">
                 <button
-                  onClick={() => alert('Fitur riwayat akan segera tersedia')}
-                  className="flex items-center px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  onClick={() => router.push('/konsultasi/history')}
+                  className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                 >
                   <History className="w-4 h-4 mr-2" />
                   Riwayat Konsultasi
