@@ -5,9 +5,9 @@ const API_CONFIG = {
   baseUrls: {
     auth: process.env.NEXT_PUBLIC_AUTH_BASE_URL || 'http://localhost:8080',
     konsultasi: process.env.NEXT_PUBLIC_KONSULTASI_BASE_URL || 'http://localhost:8081',
-    doctorList: process.env.NEXT_PUBLIC_DOCTOR_LIST_BASE_URL || 'http://localhost:8084',
+    doctorList: process.env.NEXT_PUBLIC_DOCTOR_LIST_BASE_URL || 'http://localhost:8082',
     rating: process.env.NEXT_PUBLIC_RATING_BASE_URL || 'http://localhost:8083',
-    chat: process.env.NEXT_PUBLIC_CHAT_BASE_URL || 'http://localhost:8082',
+    chat: process.env.NEXT_PUBLIC_CHAT_BASE_URL || 'http://localhost:8084',
   },
   verifyEndpoint: 'auth/verify'
 };
