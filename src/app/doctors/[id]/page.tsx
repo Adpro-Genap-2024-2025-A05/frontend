@@ -83,7 +83,7 @@ export default function DoctorDetailPage() {
       const session = await chatService.createSession(doctor.id);
       
       if (session?.id) {
-        router.push(`/chat/session/create/${session.id}`);
+        router.push(`/chat/roomchat/${session.id}`);
       } else {
         throw new Error('Failed to create chat session');
       }

@@ -163,6 +163,42 @@ const chatService = {
       throw new Error('Gagal menghapus pesan');
     }
   },
+
+  createSession: async (caregiverId: string): Promise<ChatSession> => {
+    const isValid = await chatService.verifyToken();
+    if (!isValid) throw new Error('Token tidak valid');
+
+    try {
+      const token = tokenService.getToken();
+      const response = await chatApi.post('api/chat/session/create', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        json: { caregiver: caregiverId },
+      }).json<ApiResponse<any>>();
+
+      const data = response.data;
+      const user = tokenService.getUser();
+      const isPacilian = user?.role === 'PACILIAN';
+
+      return {
+        id: data.id,
+        user2: {
+          id: isPacilian ? data.caregiver : data.pacilian,
+          name: isPacilian ? data.caregiverUsername : data.pacilianUsername,
+          role: isPacilian ? 'caregiver' : 'pacilian',
+          avatar: null,
+        },
+        updatedAt: data.createdAt,
+        lastMessage: undefined,
+      };
+    } catch (error) {
+      console.error('Failed to create chat session:', error);
+      throw new Error('Gagal membuat sesi chat');
+    }
+  }
+
 };
 
 export default chatService;
