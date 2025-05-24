@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import doctorListService, { Doctor } from '@/api/doctorListApi';
+import ratingService from '@/api/ratingApi';
 import { 
   ArrowLeft, 
   Star, 
@@ -15,8 +16,12 @@ import {
   Calendar,
   User,
   Award,
-  AlertCircle
+  AlertCircle,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale';
 
 export default function DoctorDetailPage() {
   const router = useRouter();
@@ -24,13 +29,18 @@ export default function DoctorDetailPage() {
   const doctorId = params.id as string;
   
   const [doctor, setDoctor] = useState<Doctor | null>(null);
+  const [ratings, setRatings] = useState<any[]>([]);
+  const [ratingStats, setRatingStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [ratingsLoading, setRatingsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [creatingChat, setCreatingChat] = useState(false);
+  const [showAllRatings, setShowAllRatings] = useState(false);
 
   useEffect(() => {
     if (doctorId) {
       fetchDoctorDetail();
+      fetchRatings();
     }
   }, [doctorId]);
 
@@ -45,6 +55,23 @@ export default function DoctorDetailPage() {
       setError('Gagal memuat detail dokter. Silakan coba lagi.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRatings = async () => {
+    setRatingsLoading(true);
+    try {
+      const [ratingsData, statsData] = await Promise.all([
+        ratingService.getRatingsByCaregiver(doctorId),
+        ratingService.getCaregiverRatingStats(doctorId)
+      ]);
+      setRatings(ratingsData);
+      setRatingStats(statsData);
+    } catch (error) {
+      console.error('Error fetching ratings:', error);
+      // Don't set error for ratings, just log it
+    } finally {
+      setRatingsLoading(false);
     }
   };
 
@@ -111,6 +138,15 @@ export default function DoctorDetailPage() {
     ));
   };
 
+  const renderSmallStars = (rating: number) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <Star
+        key={i}
+        className={`w-4 h-4 ${i < Math.floor(rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+      />
+    ));
+  };
+
   const groupSchedulesByDay = () => {
     if (!doctor?.workingSchedules) return {};
     
@@ -130,6 +166,8 @@ export default function DoctorDetailPage() {
     
     return grouped;
   };
+
+  const displayedRatings = showAllRatings ? ratings : ratings.slice(0, 3);
 
   if (loading) {
     return (
@@ -199,9 +237,9 @@ export default function DoctorDetailPage() {
                       </span>
                     </div>
                     <div className="flex items-center mb-4">
-                      <div className="flex">{renderStars(doctor.rating)}</div>
+                      <div className="flex">{renderStars(ratingStats?.averageRating || doctor.rating)}</div>
                       <span className="ml-3 text-sm text-gray-600">
-                        {doctor.rating.toFixed(1)} ({doctor.totalReviews} ulasan)
+                        {(ratingStats?.averageRating || doctor.rating).toFixed(1)} ({ratingStats?.totalRatings || doctor.totalReviews} ulasan)
                       </span>
                     </div>
                     <p className="text-gray-600">{doctor.description}</p>
@@ -271,6 +309,100 @@ export default function DoctorDetailPage() {
                   </div>
                 )}
               </div>
+
+              {/* Ratings Section */}
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Rating & Ulasan ({ratingStats?.totalRatings || 0})
+                  </h2>
+                  {ratingStats && (
+                    <div className="text-right">
+                      <div className="flex items-center justify-end mb-1">
+                        <div className="flex mr-2">{renderStars(ratingStats.averageRating)}</div>
+                        <span className="text-2xl font-bold text-gray-900">
+                          {ratingStats.averageRating.toFixed(1)}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        Berdasarkan {ratingStats.totalRatings} ulasan
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {ratingsLoading ? (
+                  <div className="space-y-4">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="border rounded-lg p-4 animate-pulse">
+                        <div className="flex items-center mb-2">
+                          <div className="h-4 bg-gray-300 rounded w-24 mr-4"></div>
+                          <div className="h-4 bg-gray-300 rounded w-32"></div>
+                        </div>
+                        <div className="h-3 bg-gray-300 rounded w-full mb-2"></div>
+                        <div className="h-3 bg-gray-300 rounded w-3/4"></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : ratings.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      Belum ada ulasan
+                    </h3>
+                    <p className="text-gray-600">
+                      Jadilah yang pertama memberikan ulasan untuk dokter ini
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {displayedRatings.map((rating) => (
+                      <div key={rating.id} className="border rounded-lg p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <div className="flex items-center mb-1">
+                              <div className="flex mr-2">{renderSmallStars(rating.rating)}</div>
+                              <span className="font-medium text-gray-900">
+                                {rating.pacilianName}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-500">
+                              {format(new Date(rating.createdAt), 'dd MMMM yyyy', { locale: id })}
+                            </p>
+                          </div>
+                          <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-1 rounded">
+                            {rating.rating}/5
+                          </span>
+                        </div>
+                        {rating.review && (
+                          <p className="text-gray-700 text-sm leading-relaxed">
+                            {rating.review}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+
+                    {ratings.length > 3 && (
+                      <button
+                        onClick={() => setShowAllRatings(!showAllRatings)}
+                        className="w-full flex items-center justify-center py-3 text-blue-600 hover:text-blue-700 font-medium"
+                      >
+                        {showAllRatings ? (
+                          <>
+                            <ChevronUp className="w-4 h-4 mr-1" />
+                            Tampilkan Lebih Sedikit
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="w-4 h-4 mr-1" />
+                            Tampilkan Semua Ulasan ({ratings.length})
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Sidebar - Action Buttons */}
@@ -307,12 +439,16 @@ export default function DoctorDetailPage() {
                         <span className="text-gray-600">Rating:</span>
                         <div className="flex items-center">
                           <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
-                          <span className="font-medium">{doctor.rating.toFixed(1)}</span>
+                          <span className="font-medium">
+                            {(ratingStats?.averageRating || doctor.rating).toFixed(1)}
+                          </span>
                         </div>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Total Ulasan:</span>
-                        <span className="font-medium">{doctor.totalReviews}</span>
+                        <span className="font-medium">
+                          {ratingStats?.totalRatings || doctor.totalReviews}
+                        </span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Jadwal Tersedia:</span>
