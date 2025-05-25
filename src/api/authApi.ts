@@ -8,6 +8,7 @@ interface ApiResponse<T> {
   data: T;
 }
 
+
 interface LoginResponse {
   accessToken: string;
   email: string;

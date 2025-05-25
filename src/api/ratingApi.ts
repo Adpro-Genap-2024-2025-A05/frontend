@@ -1,4 +1,5 @@
 import { ratingApi as api } from '@/middleware/apiMiddleware';
+import tokenService from '@/services/tokenService';
 
 interface ApiResponse<T> {
   status: number;
@@ -111,7 +112,34 @@ const ratingService = {
       console.error('Failed to fetch caregiver rating stats', error);
       throw error;
     }
-  }
+  },
+
+  verifyToken: async (): Promise<boolean> => {
+    try {
+      const token = tokenService.getToken();
+
+      if (!token || tokenService.isTokenExpired()) {
+        tokenService.clearAuth();
+        return false;
+      }
+
+      const response = await api.post('auth/verify', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }).json<ApiResponse<{ valid: boolean }>>();
+
+      if (!response.data.valid) {
+        tokenService.clearAuth();
+      }
+
+      return response.data.valid;
+    } catch (error) {
+      console.error('Token verification failed', error);
+      tokenService.clearAuth();
+      return false;
+    }
+  },
 };
 
 export default ratingService;
