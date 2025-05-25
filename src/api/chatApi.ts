@@ -50,7 +50,7 @@ const chatService = {
         return false;
       }
 
-      const response = await chatApi.post('auth/verify', {
+      const response = await chatApi.post('api/auth/verify', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
