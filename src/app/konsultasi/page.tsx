@@ -150,7 +150,7 @@ export default function KonsultasiPage() {
   };
 
   const handleUpdateRequest = (id: string) => {
-    router.push(`/konsultasi/${id}/update-request`);
+    router.push(`/konsultasi/${id}/update`);
   };
 
   const handleReschedule = (id: string) => {
