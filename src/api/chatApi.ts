@@ -73,7 +73,7 @@ const chatService = {
     if (!isValid) throw new Error('Token tidak valid');
 
     try {
-      const response = await chatApi.get('chat/session/user').json<ApiResponse<any[]>>();
+      const response = await chatApi.get('api/chat/session/user').json<ApiResponse<any[]>>();
       const sessionData = response.data;
       const user = tokenService.getUser();
       const isPacilian = user?.role === 'PACILIAN';
@@ -111,7 +111,7 @@ const chatService = {
     if (!isValid) throw new Error('Token tidak valid');
 
     try {
-      const response = await chatApi.get(`chat/session/${sessionId}`).json<ApiResponse<{ messages: any[] }>>();
+      const response = await chatApi.get(`api/chat/session/${sessionId}`).json<ApiResponse<{ messages: any[] }>>();
 
       return response.data.messages.map((msg: any): ChatMessage => ({
         id: msg.id,
@@ -143,7 +143,7 @@ const chatService = {
     onProgress?.({ isLoading: true, error: null });
 
     try {
-      const response = await chatApi.post('chat/send', {
+      const response = await chatApi.post('api/chat/send', {
         json: { content, sessionId },
       }).json<ApiResponse<ChatMessage>>();
 
@@ -169,7 +169,7 @@ const chatService = {
     onProgress?.({ isLoading: true, error: null });
 
     try {
-      const response = await chatApi.put(`chat/message/${messageId}`, {
+      const response = await chatApi.put(`api/chat/message/${messageId}`, {
         json: { content },
       }).json<ApiResponse<ChatMessage>>();
 
@@ -194,7 +194,7 @@ const chatService = {
     onProgress?.({ isLoading: true, error: null });
 
     try {
-      await chatApi.delete(`chat/message/${messageId}`);
+      await chatApi.delete(`api/chat/message/${messageId}`);
       
       onProgress?.({ isLoading: false, error: null });
     } catch (error) {
@@ -212,7 +212,7 @@ const chatService = {
 
     try {
       const token = tokenService.getToken();
-      const response = await chatApi.post('chat/session/create', {
+      const response = await chatApi.post('api/chat/session/create', {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',

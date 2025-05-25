@@ -116,19 +116,22 @@ export default function ChatSessionPage() {
           new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
         );
 
-        setAllMessages(prev => {
-          const prevLastId = prev.at(-1)?.id;
-          const newLastId = sortedMessages.at(-1)?.id;
-          if (prevLastId === newLastId) return prev;
-          return sortedMessages;
-        });
+        const isDifferent = JSON.stringify(allMessages.map(m => ({
+          id: m.id,
+          content: m.content,
+          edited: m.edited,
+          deleted: m.deleted,
+        }))) !== JSON.stringify(sortedMessages.map(m => ({
+          id: m.id,
+          content: m.content,
+          edited: m.edited,
+          deleted: m.deleted,
+        })));
 
-        setVisibleMessages(prev => {
-          const prevLastId = prev.at(-1)?.id;
-          const newLastId = sortedMessages.at(-1)?.id;
-          if (prevLastId === newLastId) return prev;
-          return sortedMessages.slice(-offsetRef.current);
-        });
+        if (isDifferent) {
+          setAllMessages(sortedMessages);
+          setVisibleMessages(sortedMessages.slice(-offsetRef.current));
+        }
       } catch (err) {
         console.error('Polling error:', err);
         if (err instanceof Error && err.message === 'Token tidak valid') {
@@ -138,7 +141,7 @@ export default function ChatSessionPage() {
     }, 3000);
 
     return () => clearInterval(pollingInterval);
-  }, [params.sessionId, currentUser]);
+  }, [params.sessionId, currentUser, allMessages]);
 
   const loadMoreMessages = () => {
     const total = allMessages.length;
