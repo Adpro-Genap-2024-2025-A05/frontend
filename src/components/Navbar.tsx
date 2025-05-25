@@ -9,6 +9,7 @@ export default function Navbar() {
   const router = useRouter();
 
   const isAuthPage = pathname === "/login" || pathname === "/register";
+  const isUnauthenticatedPage = pathname === "/";
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -30,7 +31,7 @@ export default function Navbar() {
         </Link>
 
         {/* Right Section */}
-        {!isAuthPage && (
+        {!isAuthPage && !isUnauthenticatedPage && (
           <div className="flex items-center space-x-4">
             {/* Account Button */}
             <Link
