@@ -1,4 +1,5 @@
 import { doctorListApi } from '@/middleware/apiMiddleware';
+import tokenService from '@/services/tokenService';
 
 interface ApiResponse<T> {
   status: number;
@@ -118,7 +119,34 @@ const doctorListService = {
       console.error('Failed to fetch doctor details', error);
       throw error;
     }
-  }
+  },
+
+  verifyToken: async (): Promise<boolean> => {
+    try {
+      const token = tokenService.getToken();
+
+      if (!token || tokenService.isTokenExpired()) {
+        tokenService.clearAuth();
+        return false;
+      }
+
+      const response = await doctorListApi.post('auth/verify', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }).json<ApiResponse<{ valid: boolean }>>();
+
+      if (!response.data.valid) {
+        tokenService.clearAuth();
+      }
+
+      return response.data.valid;
+    } catch (error) {
+      console.error('Token verification failed', error);
+      tokenService.clearAuth();
+      return false;
+    }
+  },
 };
 
 export default doctorListService;
