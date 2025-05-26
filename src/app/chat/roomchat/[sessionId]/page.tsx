@@ -116,17 +116,17 @@ export default function ChatSessionPage() {
           new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
         );
 
-        const isDifferent = JSON.stringify(allMessages.map(m => ({
-          id: m.id,
-          content: m.content,
-          edited: m.edited,
-          deleted: m.deleted,
-        }))) !== JSON.stringify(sortedMessages.map(m => ({
-          id: m.id,
-          content: m.content,
-          edited: m.edited,
-          deleted: m.deleted,
-        })));
+        const isDifferent = sortedMessages.some((newMsg, index) => {
+        const oldMsg = allMessages[index];
+        if (!oldMsg) return true;
+        return (
+          oldMsg.id !== newMsg.id ||
+          oldMsg.content !== newMsg.content ||
+          oldMsg.edited !== newMsg.edited ||
+          oldMsg.deleted !== newMsg.deleted ||
+          oldMsg.editedAt !== newMsg.editedAt 
+        );
+      });
 
         if (isDifferent) {
           setAllMessages(sortedMessages);
