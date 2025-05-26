@@ -262,8 +262,10 @@ const konsultasiService = {
 
   getCaregiverSchedulesById: async (caregiverId: string): Promise<Schedule[]> => {
     try {
+      console.log(caregiverId);
       const response = await api.get(`schedule/caregiver/${caregiverId}`)
         .json<ApiResponse<Schedule[]>>();
+      console.log(response.data);
       return response.data;
     } catch (error) {
       console.error('Failed to get caregiver schedules by ID', error);
