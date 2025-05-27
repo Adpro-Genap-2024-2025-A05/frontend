@@ -17,11 +17,11 @@ jobs:
         id: env
         run: |
           echo "NODE_ENV=development" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_API_AUTH_URL=${{ secrets.NEXT_PUBLIC_AUTH_BASE_URL }}" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_API_CHAT_URL=${{ secrets.NEXT_PUBLIC_CHAT_BASE_URL }}" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_API_KONSULTASI_URL=${{ secrets.NEXT_PUBLIC_KONSULTASI_BASE_URL }}" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_API_DOCTOR_LIST_URL=${{ secrets.NEXT_PUBLIC_DOCTOR_LIST_BASE_URL }}" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_API_RATING_URL=${{ secrets.NEXT_PUBLIC_RATING_BASE_URL }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_AUTH_BASE_URL=${{ secrets.NEXT_PUBLIC_AUTH_BASE_URL }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_CHAT_BASE_URL=${{ secrets.NEXT_PUBLIC_CHAT_BASE_URL }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_KONSULTASI_BASE_URL=${{ secrets.NEXT_PUBLIC_KONSULTASI_BASE_URL }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_DOCTOR_LIST_BASE_URL=${{ secrets.NEXT_PUBLIC_DOCTOR_LIST_BASE_URL }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_RATING_BASE_URL=${{ secrets.NEXT_PUBLIC_RATING_BASE_URL }}" >> $GITHUB_ENV
             
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.0
@@ -43,11 +43,11 @@ jobs:
             
             cat > .env << EOL
             NODE_ENV=development
-            NEXT_PUBLIC_AUTH_BASE_URL=${{ env.NEXT_PUBLIC_API_AUTH_URL }}
-            NEXT_PUBLIC_CHAT_BASE_URL=${{ env.NEXT_PUBLIC_API_CHAT_URL }}
-            NEXT_PUBLIC_KONSULTASI_BASE_URL=${{ env.NEXT_PUBLIC_API_KONSULTASI_URL }}
-            NEXT_PUBLIC_DOCTOR_LIST_BASE_URL=${{ env.NEXT_PUBLIC_API_DOCTOR_LIST_URL }}
-            NEXT_PUBLIC_RATING_BASE_URL=${{ env.NEXT_PUBLIC_API_RATING_URL }}
+            NEXT_PUBLIC_AUTH_BASE_URL=${{ env.NEXT_PUBLIC_AUTH_BASE_URL }}
+            NEXT_PUBLIC_CHAT_BASE_URL=${{ env.NEXT_PUBLIC_CHAT_BASE_URL }}
+            NEXT_PUBLIC_KONSULTASI_BASE_URL=${{ env.NEXT_PUBLIC_KONSULTASI_BASE_URL }}
+            NEXT_PUBLIC_DOCTOR_LIST_BASE_URL=${{ env.NEXT_PUBLIC_DOCTOR_LIST_BASE_URL }}
+            NEXT_PUBLIC_RATING_BASE_URL=${{ env.NEXT_PUBLIC_RATING_BASE_URL }}
             EOL
             
             docker-compose stop frontend || true

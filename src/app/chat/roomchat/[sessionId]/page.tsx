@@ -116,19 +116,22 @@ export default function ChatSessionPage() {
           new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
         );
 
-        setAllMessages(prev => {
-          const prevLastId = prev.at(-1)?.id;
-          const newLastId = sortedMessages.at(-1)?.id;
-          if (prevLastId === newLastId) return prev;
-          return sortedMessages;
-        });
+        const isDifferent = sortedMessages.some((newMsg, index) => {
+        const oldMsg = allMessages[index];
+        if (!oldMsg) return true;
+        return (
+          oldMsg.id !== newMsg.id ||
+          oldMsg.content !== newMsg.content ||
+          oldMsg.edited !== newMsg.edited ||
+          oldMsg.deleted !== newMsg.deleted ||
+          oldMsg.editedAt !== newMsg.editedAt 
+        );
+      });
 
-        setVisibleMessages(prev => {
-          const prevLastId = prev.at(-1)?.id;
-          const newLastId = sortedMessages.at(-1)?.id;
-          if (prevLastId === newLastId) return prev;
-          return sortedMessages.slice(-offsetRef.current);
-        });
+        if (isDifferent) {
+          setAllMessages(sortedMessages);
+          setVisibleMessages(sortedMessages.slice(-offsetRef.current));
+        }
       } catch (err) {
         console.error('Polling error:', err);
         if (err instanceof Error && err.message === 'Token tidak valid') {
@@ -138,7 +141,7 @@ export default function ChatSessionPage() {
     }, 3000);
 
     return () => clearInterval(pollingInterval);
-  }, [params.sessionId, currentUser]);
+  }, [params.sessionId, currentUser, allMessages]);
 
   const loadMoreMessages = () => {
     const total = allMessages.length;
@@ -287,7 +290,7 @@ export default function ChatSessionPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="flex flex-col h-screen bg-white">
         <div className="flex justify-center items-center flex-1">
           <div className="text-center">
             <div className="relative mb-6">
@@ -303,7 +306,7 @@ export default function ChatSessionPage() {
 
   if (error) {
     return (
-      <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="flex flex-col h-screen bg-white">
         <div className="flex justify-center items-center flex-1">
           <div className="bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-xl p-6 shadow-sm max-w-md">
             <div className="flex items-center mb-3">
@@ -336,7 +339,7 @@ export default function ChatSessionPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 to-white">
+    <div className="flex flex-col h-screen bg-white">
       {/* Notification Toast */}
       {notification.show && (
         <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 ${

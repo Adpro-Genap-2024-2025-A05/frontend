@@ -47,8 +47,14 @@ export default function LoginForm() {
 
     try {
       const role = await login(form.email, form.password);
+      if (role === 'CAREGIVER') {
+        router.push('/homepage'); 
+      } else if (role === 'PACILIAN') {
+        router.push('/homepage'); 
+      } else {
+        router.push('/'); 
+      }
 
-      router.push('/');
     } catch (err: any) {
       console.error('Login error:', err);
       if (err.response?.status === 401) {

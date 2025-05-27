@@ -12,7 +12,7 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({
   inputBox,
 }) => {
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 to-white">
+    <div className="flex flex-col h-screen bg-white">
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-md border-b border-blue-100 shadow-sm">
         <div className="px-6 py-4">
