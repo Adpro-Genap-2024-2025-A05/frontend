@@ -222,9 +222,6 @@ export default function RescheduleKonsultasiPage() {
                 Ajukan Reschedule Konsultasi
               </h1>
             </div>
-            <p className="text-gray-600">
-              ID: {konsultasi?.id}
-            </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

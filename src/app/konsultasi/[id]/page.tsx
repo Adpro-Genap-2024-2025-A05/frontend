@@ -138,6 +138,28 @@ export default function KonsultasiDetailPage() {
     }
   };
 
+  // Check if action box should be displayed
+  const shouldShowActionBox = () => {
+    if (!konsultasi || !user) return false;
+    
+    // Hide action box for DONE and CANCELLED status for both roles
+    if (konsultasi.status === 'DONE' || konsultasi.status === 'CANCELLED') {
+      return false;
+    }
+    
+    // Hide action box for PACILIAN when status is CONFIRMED
+    if (konsultasi.status === 'CONFIRMED' && user.role === 'PACILIAN') {
+      return false;
+    }
+    
+    // Hide action box for CAREGIVER when status is RESCHEDULED (they sent the reschedule)
+    if (konsultasi.status === 'RESCHEDULED' && user.role === 'CAREGIVER') {
+      return false;
+    }
+    
+    return true;
+  };
+
   if (loading) {
     return (
       <ProtectedRoute allowedRoles={['PACILIAN', 'CAREGIVER']} requiredService="konsultasi">
@@ -194,8 +216,8 @@ export default function KonsultasiDetailPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-6">
+          <div className={`grid grid-cols-1 ${shouldShowActionBox() ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-8`}>
+            <div className={`${shouldShowActionBox() ? 'lg:col-span-2' : 'lg:col-span-1'} space-y-6`}>
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
                   Informasi Konsultasi
@@ -289,6 +311,31 @@ export default function KonsultasiDetailPage() {
                       </p>
                     </div>
                   )}
+
+                  {(konsultasi.status === 'DONE' || konsultasi.status === 'CANCELLED') && (
+                    <div className={`p-4 ${konsultasi.status === 'DONE' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} border rounded-lg`}>
+                      <h3 className={`font-medium ${konsultasi.status === 'DONE' ? 'text-green-900' : 'text-red-900'} mb-2`}>
+                        {konsultasi.status === 'DONE' ? 'Konsultasi Selesai' : 'Konsultasi Dibatalkan'}
+                      </h3>
+                      <p className={`text-sm ${konsultasi.status === 'DONE' ? 'text-green-700' : 'text-red-700'}`}>
+                        {konsultasi.status === 'DONE' 
+                          ? 'Konsultasi telah selesai dilaksanakan. Terima kasih atas partisipasi Anda.'
+                          : 'Konsultasi ini telah dibatalkan. Silakan buat konsultasi baru jika diperlukan.'
+                        }
+                      </p>
+                    </div>
+                  )}
+
+                  {konsultasi.status === 'CONFIRMED' && user?.role === 'PACILIAN' && (
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <h3 className="font-medium text-green-900 mb-2">
+                        Konsultasi Dikonfirmasi
+                      </h3>
+                      <p className="text-sm text-green-700">
+                        Konsultasi Anda telah dikonfirmasi oleh dokter. Silakan hadir tepat waktu sesuai jadwal yang telah ditentukan.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -327,118 +374,117 @@ export default function KonsultasiDetailPage() {
               </div>
             </div>
 
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-md p-6 sticky top-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Tindakan
-                </h3>
-                
-                <div className="space-y-3">
-                  {canPerformAction('confirm') && (
-                    <button
-                      onClick={handleConfirm}
-                      disabled={actionLoading === 'confirm'}
-                      className="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition disabled:opacity-50"
-                    >
-                      <CheckCircle className="w-5 h-5 mr-2" />
-                      {actionLoading === 'confirm' ? 'Mengkonfirmasi...' : 'Konfirmasi'}
-                    </button>
-                  )}
-
-                  {canPerformAction('complete') && (
-                    <button
-                      onClick={handleComplete}
-                      disabled={actionLoading === 'complete'}
-                      className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition disabled:opacity-50"
-                    >
-                      <CheckCircle className="w-5 h-5 mr-2" />
-                      {actionLoading === 'complete' ? 'Menyelesaikan...' : 'Selesai'}
-                    </button>
-                  )}
-
-                  {canPerformAction('update_request') && (
-                    <button
-                      onClick={handleUpdateRequest}
-                      className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-                    >
-                      <Edit className="w-5 h-5 mr-2" />
-                      Update Request
-                    </button>
-                  )}
-
-                  {canPerformAction('reschedule') && (
-                    <button
-                      onClick={handleReschedule}
-                      className="w-full flex items-center justify-center px-4 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition"
-                    >
-                      <RotateCcw className="w-5 h-5 mr-2" />
-                      Ajukan Reschedule
-                    </button>
-                  )}
-
-                  {canPerformAction('accept_reschedule') && (
-                    <button
-                      onClick={handleAcceptReschedule}
-                      disabled={actionLoading === 'accept'}
-                      className="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition disabled:opacity-50"
-                    >
-                      <CheckCircle className="w-5 h-5 mr-2" />
-                      {actionLoading === 'accept' ? 'Menerima...' : 'Terima Reschedule'}
-                    </button>
-                  )}
-
-                  {canPerformAction('reject_reschedule') && (
-                    <button
-                      onClick={handleRejectReschedule}
-                      disabled={actionLoading === 'reject'}
-                      className="w-full flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 transition disabled:opacity-50"
-                    >
-                      <XCircle className="w-5 h-5 mr-2" />
-                      {actionLoading === 'reject' ? 'Menolak...' : 'Tolak Reschedule'}
-                    </button>
-                  )}
-
-                  {canPerformAction('cancel') && (
-                    <button
-                      onClick={handleCancel}
-                      disabled={actionLoading === 'cancel'}
-                      className="w-full flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 transition disabled:opacity-50"
-                    >
-                      <XCircle className="w-5 h-5 mr-2" />
-                      {actionLoading === 'cancel' ? 'Membatalkan...' : 'Batalkan'}
-                    </button>
-                  )}
-                </div>
-
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <h4 className="font-medium text-gray-900 mb-3">Informasi</h4>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    {user?.role === 'PACILIAN' ? (
-                      <>
-                        {konsultasi.status === 'REQUESTED' && (
-                          <p>• Anda dapat mengubah request selama dokter belum konfirmasi</p>
-                        )}
-                        {konsultasi.status === 'RESCHEDULED' && (
-                          <p>• Dokter telah mengajukan perubahan jadwal, silakan terima atau tolak</p>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        {konsultasi.status === 'REQUESTED' && (
-                          <p>• Silakan konfirmasi atau batalkan request dari pasien</p>
-                        )}
-                        {konsultasi.status === 'CONFIRMED' && (
-                          <p>• Anda dapat mengajukan reschedule atau menyelesaikan konsultasi</p>
-                        )}
-                        {konsultasi.status === 'RESCHEDULED' && (
-                          <p>• Menunggu pasien menerima atau menolak reschedule Anda</p>
-                        )}
-                      </>
+            {shouldShowActionBox() && (
+              <div className="lg:col-span-1">
+                <div className="bg-white rounded-lg shadow-md p-6 sticky top-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Tindakan
+                  </h3>
+                  
+                  <div className="space-y-3">
+                    {canPerformAction('confirm') && (
+                      <button
+                        onClick={handleConfirm}
+                        disabled={actionLoading === 'confirm'}
+                        className="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition disabled:opacity-50"
+                      >
+                        <CheckCircle className="w-5 h-5 mr-2" />
+                        {actionLoading === 'confirm' ? 'Mengkonfirmasi...' : 'Konfirmasi'}
+                      </button>
                     )}
+
+                    {canPerformAction('complete') && (
+                      <button
+                        onClick={handleComplete}
+                        disabled={actionLoading === 'complete'}
+                        className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition disabled:opacity-50"
+                      >
+                        <CheckCircle className="w-5 h-5 mr-2" />
+                        {actionLoading === 'complete' ? 'Menyelesaikan...' : 'Selesai'}
+                      </button>
+                    )}
+
+                    {canPerformAction('update_request') && (
+                      <button
+                        onClick={handleUpdateRequest}
+                        className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                      >
+                        <Edit className="w-5 h-5 mr-2" />
+                        Update Request
+                      </button>
+                    )}
+
+                    {canPerformAction('reschedule') && (
+                      <button
+                        onClick={handleReschedule}
+                        className="w-full flex items-center justify-center px-4 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition"
+                      >
+                        <RotateCcw className="w-5 h-5 mr-2" />
+                        Ajukan Reschedule
+                      </button>
+                    )}
+
+                    {canPerformAction('accept_reschedule') && (
+                      <button
+                        onClick={handleAcceptReschedule}
+                        disabled={actionLoading === 'accept'}
+                        className="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition disabled:opacity-50"
+                      >
+                        <CheckCircle className="w-5 h-5 mr-2" />
+                        {actionLoading === 'accept' ? 'Menerima...' : 'Terima Reschedule'}
+                      </button>
+                    )}
+
+                    {canPerformAction('reject_reschedule') && (
+                      <button
+                        onClick={handleRejectReschedule}
+                        disabled={actionLoading === 'reject'}
+                        className="w-full flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 transition disabled:opacity-50"
+                      >
+                        <XCircle className="w-5 h-5 mr-2" />
+                        {actionLoading === 'reject' ? 'Menolak...' : 'Tolak Reschedule'}
+                      </button>
+                    )}
+
+                    {canPerformAction('cancel') && (
+                      <button
+                        onClick={handleCancel}
+                        disabled={actionLoading === 'cancel'}
+                        className="w-full flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 transition disabled:opacity-50"
+                      >
+                        <XCircle className="w-5 h-5 mr-2" />
+                        {actionLoading === 'cancel' ? 'Membatalkan...' : 'Batalkan'}
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="mt-6 pt-6 border-t border-gray-200">
+                    <h4 className="font-medium text-gray-900 mb-3">Informasi</h4>
+                    <div className="space-y-2 text-sm text-gray-600">
+                      {user?.role === 'PACILIAN' ? (
+                        <>
+                          {konsultasi.status === 'REQUESTED' && (
+                            <p>• Anda dapat mengubah request selama dokter belum konfirmasi</p>
+                          )}
+                          {konsultasi.status === 'RESCHEDULED' && (
+                            <p>• Dokter telah mengajukan perubahan jadwal, silakan terima atau tolak</p>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          {konsultasi.status === 'REQUESTED' && (
+                            <p>• Silakan konfirmasi atau batalkan request dari pasien</p>
+                          )}
+                          {konsultasi.status === 'CONFIRMED' && (
+                            <p>• Anda dapat mengajukan reschedule atau menyelesaikan konsultasi</p>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
