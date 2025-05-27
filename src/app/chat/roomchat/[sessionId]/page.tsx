@@ -290,7 +290,7 @@ export default function ChatSessionPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="flex flex-col h-screen bg-white">
         <div className="flex justify-center items-center flex-1">
           <div className="text-center">
             <div className="relative mb-6">
@@ -306,7 +306,7 @@ export default function ChatSessionPage() {
 
   if (error) {
     return (
-      <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="flex flex-col h-screen bg-white">
         <div className="flex justify-center items-center flex-1">
           <div className="bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-xl p-6 shadow-sm max-w-md">
             <div className="flex items-center mb-3">
@@ -339,7 +339,7 @@ export default function ChatSessionPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 to-white">
+    <div className="flex flex-col h-screen bg-white">
       {/* Notification Toast */}
       {notification.show && (
         <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 ${
